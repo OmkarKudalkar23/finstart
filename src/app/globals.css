@@ -3,24 +3,24 @@
 @theme {
   --color-background: #050505;
   --color-foreground: #ffffff;
-  
+
   --color-primary: #8b5cf6;
   --color-primary-foreground: #ffffff;
-  
+
   --color-secondary: #0ea5e9;
   --color-secondary-foreground: #ffffff;
-  
+
   --color-accent: #10b981;
   --color-accent-foreground: #ffffff;
-  
+
   --color-muted: #171717;
   --color-muted-foreground: #a3a3a3;
-  
+
   --color-card: #0a0a0a;
   --color-card-foreground: #ffffff;
-  
+
   --color-border: #262626;
-  
+
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
@@ -33,11 +33,11 @@
   :root {
     --background: #050505;
     --foreground: #ffffff;
-    
+
     --primary: #8b5cf6;
     --secondary: #0ea5e9;
     --accent: #10b981;
-    
+
     --border: #262626;
     --input: #262626;
     --ring: #8b5cf6;
@@ -76,16 +76,24 @@
 
   .bg-grid {
     background-size: 40px 40px;
-    background-image: 
+    background-image:
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 /* Custom Scrollbar */
@@ -104,4 +112,171 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #404040;
+}
+
+/* ============================================================
+   CUBE LAZY LOADER  — mobile-optimised
+   Only uses transform + opacity (GPU compositor, zero repaints)
+   No backdrop-filter on the cube itself.
+   ============================================================ */
+
+/* ── Page-transition overlay ─────────────────────────────── */
+.pt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Solid dark bg — no backdrop-filter (kills mobile perf) */
+  background: #050505;
+  transition: opacity 0.3s ease;
+  /* Force own compositor layer */
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* ── Wrapper layouts ─────────────────────────────────────── */
+.cl-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  width: 100%;
+  height: 100%;
+}
+
+.cl-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 2rem;
+}
+
+/* ── 3-D scene ───────────────────────────────────────────── */
+.cl-scene {
+  width: 56px;
+  height: 56px;
+  perspective: 220px;
+  /* Own layer so the cube doesn't trigger parent repaints */
+  isolation: isolate;
+}
+
+.cl-cube {
+  width: 56px;
+  height: 56px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: cl-spin 2s linear infinite;
+  will-change: transform;
+}
+
+/* ── Faces ───────────────────────────────────────────────── */
+.cl-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  /* Solid colours — no gradients on faces (cheaper to composite) */
+  border: 1.5px solid rgba(139, 92, 246, 0.6);
+}
+
+.cl-front {
+  background: rgba(139, 92, 246, 0.75);
+  transform: rotateY(0deg) translateZ(28px);
+}
+
+.cl-back {
+  background: rgba(14, 165, 233, 0.75);
+  transform: rotateY(180deg) translateZ(28px);
+}
+
+.cl-left {
+  background: rgba(16, 185, 129, 0.75);
+  transform: rotateY(-90deg) translateZ(28px);
+}
+
+.cl-right {
+  background: rgba(139, 92, 246, 0.60);
+  transform: rotateY(90deg) translateZ(28px);
+}
+
+.cl-top {
+  background: rgba(14, 165, 233, 0.60);
+  transform: rotateX(90deg) translateZ(28px);
+}
+
+.cl-bottom {
+  background: rgba(16, 185, 129, 0.60);
+  transform: rotateX(-90deg) translateZ(28px);
+}
+
+/* ── Spin — only rotates (no scale/translate changes = no layout) */
+@keyframes cl-spin {
+  from {
+    transform: rotateX(-22deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-22deg) rotateY(360deg);
+  }
+}
+
+/* ── Glow ring ───────────────────────────────────────────── */
+.cl-glow {
+  width: 72px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+      rgba(139, 92, 246, 0.45) 0%,
+      transparent 70%);
+  margin-top: -8px;
+  animation: cl-glow-pulse 2s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes cl-glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Bouncing dots ───────────────────────────────────────── */
+.cl-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cl-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.8);
+  animation: cl-bounce 1.2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes cl-bounce {
+
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+
+  40% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
 }

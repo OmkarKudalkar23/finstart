@@ -167,141 +167,302 @@ export default function Home() {
       {/* Product Flow Section: "The Intelligent Pipeline" */}
       <UnifiedPipeline />
 
-      {/* Feature Section: "Interface as Feature" */}
-      <section className="relative py-32 bg-[#080808]">
-        <div className="max-w-7xl mx-auto px-6 space-y-32">
+      {/* ── FEATURE SECTION ─────────────────────────────────────────── */}
+      <section className="relative bg-[#050505] overflow-hidden">
 
-          {/* Feature 1: Manual Review Prevention */}
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-6">
-              <Badge variant="default" className="mb-2">Admin View</Badge>
-              <h2 className="text-4xl font-bold tracking-tight">Reduce Manual Reviews by <span className="text-primary italic">85%</span>.</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Our AI provides high-fidelity decision logs for every onboarding event. Admins only see the cases that truly matter, while the system handles the rest with absolute compliance.
-              </p>
-              <ul className="space-y-4 pt-4">
-                {[
-                  "Intelligent drop-off identification",
-                  "Real-time fraud alert scoring",
-                  "Full audit trail for every field"
-                ].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-sm font-medium">
-                    <CheckCircle2 className="w-5 h-5 text-accent" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* ── FEATURE 1: Admin Intelligence ──────────────────────────── */}
+        <div className="relative min-h-screen flex items-center border-b border-white/[0.04]">
 
-            {/* Admin UI Preview Mockup */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[2.5rem] blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-              <Card className="p-6 relative bg-card/90 backdrop-blur-xl border-white/5 shadow-2xl">
-                <div className="flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10">
-                  <div className="flex items-center gap-3">
-                    <LayoutDashboard className="w-5 h-5 text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-widest leading-none">Global Onboarding Metrics</span>
-                  </div>
-                  <Badge variant="outline" className="text-[8px] h-5 px-2">Live Update</Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-[8px] uppercase font-black text-muted-foreground tracking-widest mb-1">Success Rate</p>
-                    <p className="text-2xl font-black">94.2%</p>
-                    <div className="h-1 bg-white/10 mt-3 rounded-full overflow-hidden">
-                      <div className="h-full bg-accent w-[94%]" />
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-                    <p className="text-[8px] uppercase font-black text-red-400 tracking-widest mb-1">Fraud Alerts</p>
-                    <p className="text-2xl font-black text-red-500">12</p>
-                    <p className="text-[9px] mt-2 opacity-50 italic">3 high-risk detected</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-3 px-1">Recent Activity Log</p>
-                  {[
-                    { user: "Sarah W.", status: "Verified", time: "2s ago", color: "accent" },
-                    { user: "Marcus T.", status: "Manual Review", time: "15s ago", color: "amber-500" },
-                    { user: "Neo Corp", status: "Verified", time: "1m ago", color: "accent" }
-                  ].map((log, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 group/item hover:bg-white/10 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center font-bold text-[10px]">{log.user[0]}</div>
-                        <span className="text-xs font-bold">{log.user}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`text-[9px] font-black uppercase text-${log.color}`}>{log.status}</span>
-                        <span className="text-[8px] text-muted-foreground">{log.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
+          {/* Full-bleed background number */}
+          <div className="absolute inset-0 flex items-center justify-end pr-8 pointer-events-none select-none overflow-hidden">
+            <span className="text-[28vw] font-black text-white/[0.02] leading-none tracking-tighter">85</span>
           </div>
 
-          {/* Feature 2: High Conversion KYC */}
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <div className="order-2 lg:order-1 relative group">
-              <Card className="p-0 overflow-hidden border-white/10 shadow-3xl bg-black rounded-3xl ring-1 ring-white/10">
-                <div className="aspect-[4/3] relative bg-[#050505] overflow-hidden flex items-center justify-center">
-                  <div className="absolute inset-0 bg-grid opacity-10" />
+          {/* Gradient blobs */}
+          <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-primary/10 blur-[180px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/8 blur-[140px] rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
-                  {/* Biometric HUD Simulation */}
-                  <div className="relative w-48 h-64 border-2 border-primary/50 rounded-full flex items-center justify-center">
-                    <div className="absolute inset-[-10px] border border-primary/20 rounded-full animate-ping" />
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.1),transparent)] rounded-full" />
-                    <Fingerprint className="w-16 h-16 text-primary animate-pulse" />
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full py-32 grid lg:grid-cols-[1fr_1.1fr] gap-16 lg:gap-24 items-center relative z-10">
 
-                    {/* Floating HUD Labels */}
-                    <div className="absolute top-10 -right-20 px-2 py-1 glass border border-primary/30 rounded text-[8px] font-black uppercase tracking-widest">Liveness: Passive</div>
-                    <div className="absolute bottom-10 -left-20 px-2 py-1 glass border-accent/30 rounded text-[8px] font-black uppercase tracking-widest text-accent">3D Depth Map: OK</div>
+            {/* Left: Copy */}
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/80">Admin Intelligence</span>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/20 mb-3">Manual Review Reduction</p>
+                <h2 className="text-6xl lg:text-7xl font-black tracking-tighter leading-[0.9] text-white">
+                  Cut noise.<br />
+                  <span className="relative inline-block">
+                    <span className="text-primary italic">Not corners.</span>
+                    <motion.div
+                      animate={{ scaleX: [0, 1] }}
+                      transition={{ duration: 1, delay: 0.5 }}
+                      className="absolute -bottom-2 left-0 right-0 h-[2px] bg-primary/40 origin-left"
+                    />
+                  </span>
+                </h2>
+              </div>
+
+              <p className="text-base text-white/40 leading-relaxed max-w-md font-medium">
+                Our AI surfaces only the cases that need human eyes. Every other decision is handled, logged, and compliant — automatically.
+              </p>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-6 pt-4">
+                {[
+                  { val: "85%", label: "Fewer manual reviews" },
+                  { val: "2.3s", label: "Avg. decision time" },
+                  { val: "99.8%", label: "Compliance rate" },
+                ].map((s, i) => (
+                  <div key={i} className="space-y-1 border-l border-white/10 pl-4">
+                    <p className="text-2xl font-black text-white tracking-tight">{s.val}</p>
+                    <p className="text-[10px] text-white/30 font-medium leading-tight">{s.label}</p>
                   </div>
-
-                  <div className="absolute bottom-6 left-6 right-6 p-4 glass rounded-2xl border border-white/10 text-center">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2 animate-pulse">Scanning identity markers...</p>
-                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                      <motion.div
-                        animate={{ width: ["0%", "100%", "100%"] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="h-full bg-primary"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </Card>
+                ))}
+              </div>
             </div>
 
-            <div className="order-1 lg:order-2 space-y-6">
-              <Badge variant="accent" className="mb-2">Customer Experience</Badge>
-              <h2 className="text-4xl font-bold tracking-tight text-white leading-tight">Onboarding That <span className="text-gradient">Feels Like Magic</span>.</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed italic">
-                "I was verified and accessing my new account before my coffee was ready."
-              </p>
-              <p className="text-base text-muted-foreground leading-relaxed">
-                The primary reason for onboarding drop-off is friction. Finstart removes it entirely with passive verification—no awkward phrases to record, no complex head movements. Just instant proof of identity.
-              </p>
-              <div className="grid grid-cols-2 gap-6 pt-6">
-                <div className="space-y-2">
-                  <div className="flex gap-1 text-accent">
-                    {[1, 2, 3, 4, 5].map(i => <Zap key={i} className="w-3 h-3 fill-current" />)}
+            {/* Right: Live Admin Dashboard */}
+            <div className="relative">
+              {/* Outer glow ring */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 rounded-[3rem] blur-2xl" />
+
+              <div className="relative rounded-[2rem] overflow-hidden border border-white/[0.08] bg-[#0c0c0c] shadow-[0_40px_120px_rgba(0,0,0,0.8)]">
+
+                {/* Window chrome */}
+                <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
                   </div>
-                  <p className="text-xs font-bold text-white uppercase tracking-widest">Instant Activation</p>
+                  <div className="flex-1 mx-4 h-5 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center px-3">
+                    <span className="text-[9px] text-white/20 font-mono">finstart.io/admin/compliance</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                    <span className="text-[8px] font-black text-accent uppercase tracking-widest">Live</span>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex gap-1 text-primary">
-                    {[1, 2, 3, 4, 5].map(i => <ShieldCheck key={i} className="w-3 h-3 fill-current" />)}
+
+                {/* Dashboard body */}
+                <div className="p-5 space-y-4">
+
+                  {/* Metric cards */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { label: "Success Rate", val: "94.2%", sub: "+2.1% vs last week", color: "accent", bg: "bg-accent/5 border-accent/15" },
+                      { label: "Fraud Alerts", val: "12", sub: "3 high-risk", color: "red-400", bg: "bg-red-500/5 border-red-500/15" },
+                      { label: "Queue", val: "4", sub: "↓ from 31", color: "primary", bg: "bg-primary/5 border-primary/15" },
+                    ].map((m, i) => (
+                      <div key={i} className={`p-3 rounded-xl border ${m.bg} space-y-1`}>
+                        <p className={`text-[8px] font-black uppercase tracking-widest text-${m.color} opacity-70`}>{m.label}</p>
+                        <p className={`text-xl font-black text-${m.color} leading-none`}>{m.val}</p>
+                        <p className="text-[8px] text-white/20 font-medium">{m.sub}</p>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-xs font-bold text-white uppercase tracking-widest">Bank-Grade Privacy</p>
+
+                  {/* Sparkline bar chart */}
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Verification Volume — 7d</span>
+                      <span className="text-[9px] font-bold text-accent">↑ 18%</span>
+                    </div>
+                    <div className="flex items-end gap-1 h-10">
+                      {[40, 65, 45, 80, 55, 90, 72].map((h, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${h}%` }}
+                          transition={{ delay: i * 0.08, duration: 0.6, ease: "easeOut" }}
+                          className={`flex-1 rounded-sm ${i === 5 ? "bg-primary" : "bg-white/10"}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-1.5">
+                      {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                        <span key={i} className="text-[7px] text-white/15 font-bold flex-1 text-center">{d}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Activity feed */}
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/20 px-1 mb-2">Live Activity</p>
+                    {[
+                      { name: "Sarah W.", country: "🇬🇧", status: "Verified", statusColor: "text-accent", dot: "bg-accent", time: "2s" },
+                      { name: "Marcus T.", country: "🇩🇪", status: "Manual Review", statusColor: "text-amber-400", dot: "bg-amber-400", time: "15s" },
+                      { name: "Neo Corp", country: "🇸🇬", status: "Verified", statusColor: "text-accent", dot: "bg-accent", time: "1m" },
+                      { name: "Priya K.", country: "🇮🇳", status: "Flagged", statusColor: "text-red-400", dot: "bg-red-400", time: "3m" },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.03] transition-colors group">
+                        <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white/40 shrink-0">
+                          {row.name[0]}
+                        </div>
+                        <span className="text-[11px] font-semibold text-white/60 flex-1">{row.name}</span>
+                        <span className="text-[10px]">{row.country}</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-1.5 h-1.5 rounded-full ${row.dot} ${row.dot === "bg-accent" ? "animate-pulse" : ""}`} />
+                          <span className={`text-[9px] font-black uppercase tracking-wider ${row.statusColor}`}>{row.status}</span>
+                        </div>
+                        <span className="text-[8px] text-white/15 font-mono">{row.time}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* ── FEATURE 2: Biometric KYC ───────────────────────────────── */}
+        <div className="relative min-h-screen flex items-center border-b border-white/[0.04]">
+
+          {/* Background number */}
+          <div className="absolute inset-0 flex items-center justify-start pl-8 pointer-events-none select-none overflow-hidden">
+            <span className="text-[28vw] font-black text-white/[0.02] leading-none tracking-tighter">02</span>
+          </div>
+
+          {/* Gradient blobs */}
+          <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-accent/8 blur-[160px] rounded-full translate-x-1/3 -translate-y-1/2 pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full py-32 grid lg:grid-cols-[1.1fr_1fr] gap-16 lg:gap-24 items-center relative z-10">
+
+            {/* Left: Biometric HUD */}
+            <div className="relative order-2 lg:order-1">
+              <div className="absolute -inset-4 bg-gradient-to-br from-accent/8 via-transparent to-primary/8 rounded-[3rem] blur-2xl" />
+
+              <div className="relative rounded-[2rem] overflow-hidden border border-white/[0.08] bg-[#0c0c0c] shadow-[0_40px_120px_rgba(0,0,0,0.8)] aspect-[4/3] flex items-center justify-center">
+
+                {/* Grid bg */}
+                <div className="absolute inset-0 opacity-[0.04]"
+                  style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
+                />
+
+                {/* Radial glow */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08)_0%,transparent_70%)]" />
+
+                {/* Face oval */}
+                <div className="relative flex flex-col items-center gap-6">
+                  <div className="relative w-44 h-56">
+                    {/* Outer rings */}
+                    <motion.div
+                      animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.35, 0.15] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      className="absolute -inset-6 rounded-full border border-primary/30"
+                    />
+                    <motion.div
+                      animate={{ scale: [1, 1.08, 1], opacity: [0.08, 0.2, 0.08] }}
+                      transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+                      className="absolute -inset-12 rounded-full border border-primary/15"
+                    />
+
+                    {/* Main oval */}
+                    <div className="absolute inset-0 rounded-full border-2 border-primary/50 overflow-hidden bg-primary/[0.03]">
+                      {/* Scan line */}
+                      <motion.div
+                        animate={{ top: ["0%", "100%", "0%"] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                        className="absolute left-0 right-0 h-[1px] bg-primary/70 shadow-[0_0_12px_rgba(139,92,246,0.9)]"
+                      />
+                    </div>
+
+                    {/* Corner brackets */}
+                    {[
+                      "top-0 left-0 border-t-2 border-l-2",
+                      "top-0 right-0 border-t-2 border-r-2",
+                      "bottom-0 left-0 border-b-2 border-l-2",
+                      "bottom-0 right-0 border-b-2 border-r-2",
+                    ].map((cls, i) => (
+                      <div key={i} className={`absolute w-5 h-5 border-primary/60 ${cls}`} />
+                    ))}
+
+                    {/* Center icon */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Fingerprint className="w-16 h-16 text-primary/15" />
+                    </div>
+                  </div>
+
+                  {/* Status pill */}
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl">
+                    <Activity className="w-3 h-3 text-primary animate-pulse" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Passive liveness active</span>
+                  </div>
+                </div>
+
+                {/* Floating HUD chips */}
+                <div className="absolute top-6 left-6 px-3 py-1.5 rounded-lg bg-black/70 border border-primary/20 backdrop-blur-xl">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-primary/70">Depth Map</p>
+                  <p className="text-[11px] font-bold text-white">68 pts · OK</p>
+                </div>
+                <div className="absolute top-6 right-6 px-3 py-1.5 rounded-lg bg-black/70 border border-accent/20 backdrop-blur-xl">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-accent/70">Confidence</p>
+                  <p className="text-[11px] font-bold text-white">98.4%</p>
+                </div>
+                <div className="absolute bottom-6 left-6 right-6 p-3 rounded-xl bg-black/70 border border-white/[0.06] backdrop-blur-xl">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Liveness Score</span>
+                    <span className="text-[9px] font-black text-accent">PASSED</span>
+                  </div>
+                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      animate={{ width: ["0%", "98%"] }}
+                      transition={{ duration: 2, ease: "easeOut" }}
+                      className="h-full bg-accent shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Copy */}
+            <div className="order-1 lg:order-2 space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent/20 bg-accent/5">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-accent/80">Customer Experience</span>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/20 mb-3">Zero-friction KYC</p>
+                <h2 className="text-6xl lg:text-7xl font-black tracking-tighter leading-[0.9] text-white">
+                  Verified in<br />
+                  <span className="text-accent italic">seconds.</span>
+                </h2>
+              </div>
+
+              <blockquote className="border-l-2 border-accent/40 pl-5">
+                <p className="text-base text-white/50 italic leading-relaxed font-medium">
+                  "I was verified and accessing my account before my coffee was ready."
+                </p>
+                <p className="text-[10px] text-white/25 font-black uppercase tracking-widest mt-2">— Early access user</p>
+              </blockquote>
+
+              <p className="text-sm text-white/35 leading-relaxed font-medium max-w-sm">
+                No awkward phrases. No head movements. Passive liveness detection runs silently in the background — invisible to the user, impossible to spoof.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                {[
+                  { icon: <Zap className="w-4 h-4" />, label: "Instant Activation", color: "text-accent" },
+                  { icon: <ShieldCheck className="w-4 h-4" />, label: "Bank-Grade Privacy", color: "text-primary" },
+                  { icon: <Brain className="w-4 h-4" />, label: "Passive AI Detection", color: "text-accent" },
+                  { icon: <Globe className="w-4 h-4" />, label: "190+ Countries", color: "text-primary" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-colors">
+                    <div className={`${item.color} opacity-60`}>{item.icon}</div>
+                    <span className="text-[11px] font-bold text-white/50">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
+
 
       {/* Enterprise Analytics Preview */}
       <section className="relative py-32 overflow-hidden bg-black">
