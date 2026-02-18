@@ -43,7 +43,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                 <div className="w-px h-6 bg-white/10 shrink-0 hidden sm:block" />
 
                 {/* Horizontal Stepper — compact for 10 steps */}
-                <nav className="flex-1 flex items-center justify-center overflow-x-auto">
+                <nav className="flex-1 flex items-center justify-center overflow-x-auto no-scrollbar">
                     <ol className="flex items-center gap-0 min-w-max">
                         {STEPS.map((step, idx) => {
                             const isCompleted = activeStep > idx;
@@ -126,7 +126,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
             </header>
 
             {/* ── ONBOARDING CANVAS ──────────────────────────────────────── */}
-            <main className="flex-1 flex flex-col overflow-y-auto">
+            <main className="flex-1 flex flex-col overflow-y-auto onboarding-scroll">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={pathname}

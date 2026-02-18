@@ -150,27 +150,6 @@ export function Navbar() {
                 {/* --- RIGHT: CONTROL ZONE --- */}
                 <div className="flex items-center gap-4 relative z-10">
 
-                    {/* System Status Chip */}
-                    <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors group cursor-default">
-                        <div className="relative">
-                            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                            <div className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
-                        </div>
-                        <div className="flex flex-col items-start">
-                            <span className="text-[9px] font-black uppercase text-accent leading-none tracking-widest">Compliant</span>
-                            <span className="text-[7px] text-white/40 font-bold uppercase leading-none mt-1">Live Status</span>
-                        </div>
-                        {/* Tooltip Simulation */}
-                        <div className="absolute top-16 right-0 w-48 p-3 bg-black border border-white/10 rounded-xl opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all pointer-events-none shadow-3xl">
-                            <p className="text-[10px] text-white font-bold mb-1">Infrastructure Health</p>
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-accent w-[99%]" />
-                                </div>
-                                <span className="text-[8px] text-accent">99.9%</span>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Notification Center */}
                     <button className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all group relative">
