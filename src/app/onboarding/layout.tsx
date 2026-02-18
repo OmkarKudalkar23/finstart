@@ -2,15 +2,20 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Zap, Shield, Clock, ChevronRight, X, User } from "lucide-react";
+import { CheckCircle2, Zap, Shield, Clock, X, User } from "lucide-react";
 import Link from "next/link";
 
 const STEPS = [
-    { id: 0, path: "/onboarding/details", label: "Identity", sublabel: "Personal details" },
-    { id: 1, path: "/onboarding/identity", label: "Documents", sublabel: "ID verification" },
-    { id: 2, path: "/onboarding/biometrics", label: "Biometrics", sublabel: "Face match" },
-    { id: 3, path: "/onboarding/processing", label: "Compliance", sublabel: "AI screening" },
-    { id: 4, path: "/onboarding/success", label: "Activated", sublabel: "Account live" },
+    { id: 0, path: "/onboarding/register", label: "Register", sublabel: "Account setup" },
+    { id: 1, path: "/onboarding/assistant", label: "AI Guide", sublabel: "AI assistant" },
+    { id: 2, path: "/onboarding/documents", label: "Documents", sublabel: "Upload proofs" },
+    { id: 3, path: "/onboarding/details", label: "Identity", sublabel: "Personal details" },
+    { id: 4, path: "/onboarding/identity", label: "Doc Review", sublabel: "AI extraction" },
+    { id: 5, path: "/onboarding/biometrics", label: "Biometrics", sublabel: "Face match" },
+    { id: 6, path: "/onboarding/address", label: "Address", sublabel: "Verification" },
+    { id: 7, path: "/onboarding/financial", label: "Financial", sublabel: "Profile" },
+    { id: 8, path: "/onboarding/processing", label: "Compliance", sublabel: "AI screening" },
+    { id: 9, path: "/onboarding/success", label: "Activated", sublabel: "Account live" },
 ];
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
@@ -37,18 +42,17 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
 
                 <div className="w-px h-6 bg-white/10 shrink-0 hidden sm:block" />
 
-                {/* Horizontal Stepper */}
-                <nav className="flex-1 flex items-center justify-center">
-                    <ol className="flex items-center gap-0">
+                {/* Horizontal Stepper — compact for 10 steps */}
+                <nav className="flex-1 flex items-center justify-center overflow-x-auto">
+                    <ol className="flex items-center gap-0 min-w-max">
                         {STEPS.map((step, idx) => {
                             const isCompleted = activeStep > idx;
                             const isActive = activeStep === idx;
-                            const isUpcoming = activeStep < idx;
 
                             return (
                                 <li key={step.id} className="flex items-center">
                                     {/* Step node */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5">
                                         <motion.div
                                             initial={false}
                                             animate={{
@@ -56,20 +60,20 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                                                 borderColor: isCompleted ? "#10b981" : isActive ? "rgb(139,92,246)" : "rgba(255,255,255,0.1)",
                                             }}
                                             transition={{ duration: 0.4 }}
-                                            className="w-7 h-7 rounded-full border flex items-center justify-center shrink-0"
+                                            className="w-6 h-6 rounded-full border flex items-center justify-center shrink-0"
                                         >
                                             {isCompleted ? (
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                                <CheckCircle2 className="w-3 h-3 text-white" />
                                             ) : (
-                                                <span className={`text-[10px] font-black ${isActive ? "text-white" : "text-white/30"}`}>
+                                                <span className={`text-[9px] font-black ${isActive ? "text-white" : "text-white/30"}`}>
                                                     {idx + 1}
                                                 </span>
                                             )}
                                         </motion.div>
 
-                                        {/* Label — only on lg */}
-                                        <div className="hidden lg:flex flex-col leading-none">
-                                            <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isActive ? "text-white" : isCompleted ? "text-accent" : "text-white/25"}`}>
+                                        {/* Label — only on xl */}
+                                        <div className="hidden xl:flex flex-col leading-none">
+                                            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${isActive ? "text-white" : isCompleted ? "text-accent" : "text-white/20"}`}>
                                                 {step.label}
                                             </span>
                                         </div>
@@ -77,7 +81,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
 
                                     {/* Connector */}
                                     {idx < STEPS.length - 1 && (
-                                        <div className="w-8 lg:w-14 h-px mx-2 bg-white/10 relative overflow-hidden">
+                                        <div className="w-5 lg:w-8 h-px mx-1.5 bg-white/10 relative overflow-hidden">
                                             <motion.div
                                                 initial={false}
                                                 animate={{ width: isCompleted ? "100%" : "0%" }}
@@ -138,7 +142,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
             </main>
 
             {/* ── BOTTOM STATUS BAR ──────────────────────────────────────── */}
-            {activeStep < 4 && (
+            {activeStep < 9 && (
                 <footer className="flex-none h-10 border-t border-white/[0.04] bg-[#080808] flex items-center px-6 lg:px-10 gap-4">
                     <Shield className="w-3 h-3 text-white/20" />
                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20">

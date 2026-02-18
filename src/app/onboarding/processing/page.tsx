@@ -44,9 +44,9 @@ export default function ProcessingPage() {
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center">
-                            <span className="text-[8px] font-black text-primary">04</span>
+                            <span className="text-[8px] font-black text-primary">08</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">AI Compliance Engine</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">AI Compliance Engine · Step 8 of 9</span>
                     </div>
                     <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight mb-3">
                         Running<br />
@@ -107,7 +107,7 @@ export default function ProcessingPage() {
             {/* ── RIGHT: CONTEXTUAL VISUAL ───────────────────────────────── */}
             <div className="hidden lg:flex w-[420px] xl:w-[480px] flex-col justify-center px-12 xl:px-16 border-l border-white/[0.05] bg-[#060606] gap-8">
                 <AIGuidance
-                    step="04"
+                    step="08"
                     title="Cross-referencing Databases"
                     message={`Checking against OFAC, PEP, Interpol, and 50+ sanction lists simultaneously. ${completed.length} of ${CHECKS.length} checks complete.`}
                     status={completed.length === CHECKS.length ? "All checks passed ✓" : "Processing…"}

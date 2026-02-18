@@ -27,9 +27,9 @@ export default function IdentityPage() {
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center">
-                            <span className="text-[8px] font-black text-primary">02</span>
+                            <span className="text-[8px] font-black text-primary">05</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Document Scan</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Document Review · Step 5 of 9</span>
                     </div>
                     <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight mb-3">
                         Verify your<br />
@@ -127,7 +127,7 @@ export default function IdentityPage() {
             {/* ── RIGHT: CONTEXTUAL VISUAL ───────────────────────────────── */}
             <div className="hidden lg:flex w-[420px] xl:w-[480px] flex-col justify-center px-12 xl:px-16 border-l border-white/[0.05] bg-[#060606] gap-8">
                 <AIGuidance
-                    step="02"
+                    step="05"
                     title="Document Intelligence"
                     message="Our OCR engine extracts 5,000+ data points from your ID — name, DOB, MRZ codes, and security features — then validates against issuing authority databases."
                     status="Ready to scan"

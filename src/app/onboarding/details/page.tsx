@@ -3,17 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, User, Building2, Mail, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, User, Building2, Mail, Phone, CreditCard, CheckCircle2, Calendar } from "lucide-react";
 import { AIGuidance } from "@/components/onboarding/AIGuidance";
 
-const AI_HINT = "I'll use your legal name to cross-reference identity records across 5,000+ global databases. All data is encrypted at rest.";
+const AI_HINT = "I'll use your legal name and details to cross-reference identity records across 5,000+ global databases. All data is encrypted at rest with AES-256.";
 
 export default function DetailsPage() {
     const router = useRouter();
-    const [form, setForm] = useState({ firstName: "", lastName: "", email: "", org: "" });
+    const [form, setForm] = useState({
+        firstName: "", lastName: "", email: "", phone: "", dob: "", nationality: "", org: ""
+    });
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-    const isValid = form.firstName.trim() && form.lastName.trim() && form.email.includes("@");
+    const isValid = form.firstName.trim() && form.lastName.trim() && form.email.includes("@") && form.dob;
 
     const handleBlur = (field: string) => setTouched(t => ({ ...t, [field]: true }));
     const handleChange = (field: string, val: string) => setForm(f => ({ ...f, [field]: val }));
@@ -32,7 +34,7 @@ export default function DetailsPage() {
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center">
-                            <span className="text-[8px] font-black text-primary">01</span>
+                            <span className="text-[8px] font-black text-primary">04</span>
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Identity Setup</span>
                     </div>
@@ -46,13 +48,13 @@ export default function DetailsPage() {
                 </div>
 
                 {/* Form fields */}
-                <div className="space-y-8 max-w-xl">
+                <div className="space-y-6 max-w-xl">
 
                     {/* Name row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <Field
                             label="Legal First Name"
-                            placeholder="Marcus"
+                            placeholder="Arjun"
                             value={form.firstName}
                             onChange={v => handleChange("firstName", v)}
                             onBlur={() => handleBlur("firstName")}
@@ -61,7 +63,7 @@ export default function DetailsPage() {
                         />
                         <Field
                             label="Legal Last Name"
-                            placeholder="Thorne"
+                            placeholder="Sharma"
                             value={form.lastName}
                             onChange={v => handleChange("lastName", v)}
                             onBlur={() => handleBlur("lastName")}
@@ -71,8 +73,8 @@ export default function DetailsPage() {
 
                     {/* Email */}
                     <Field
-                        label="Enterprise Email"
-                        placeholder="m.thorne@visionary.io"
+                        label="Email Address"
+                        placeholder="arjun.sharma@email.com"
                         type="email"
                         value={form.email}
                         onChange={v => handleChange("email", v)}
@@ -82,15 +84,48 @@ export default function DetailsPage() {
                         hint="We'll send your verification receipt here."
                     />
 
-                    {/* Organisation */}
-                    <Field
-                        label="Organisation"
-                        placeholder="Visionary Labs"
-                        value={form.org}
-                        onChange={v => handleChange("org", v)}
-                        icon={<Building2 className="w-4 h-4" />}
-                        optional
-                    />
+                    {/* Phone + DOB row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <Field
+                            label="Phone Number"
+                            placeholder="+91 98765 43210"
+                            type="tel"
+                            value={form.phone}
+                            onChange={v => handleChange("phone", v)}
+                            icon={<Phone className="w-4 h-4" />}
+                            optional
+                        />
+                        <Field
+                            label="Date of Birth"
+                            placeholder="DD/MM/YYYY"
+                            type="date"
+                            value={form.dob}
+                            onChange={v => handleChange("dob", v)}
+                            onBlur={() => handleBlur("dob")}
+                            error={touched.dob && !form.dob ? "Required" : ""}
+                            icon={<Calendar className="w-4 h-4" />}
+                        />
+                    </div>
+
+                    {/* Nationality + Organisation */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <Field
+                            label="Nationality"
+                            placeholder="Indian"
+                            value={form.nationality}
+                            onChange={v => handleChange("nationality", v)}
+                            icon={<CreditCard className="w-4 h-4" />}
+                            optional
+                        />
+                        <Field
+                            label="Organisation"
+                            placeholder="Visionary Labs"
+                            value={form.org}
+                            onChange={v => handleChange("org", v)}
+                            icon={<Building2 className="w-4 h-4" />}
+                            optional
+                        />
+                    </div>
 
                     {/* CTA */}
                     <div className="pt-4">
@@ -99,11 +134,11 @@ export default function DetailsPage() {
                             disabled={!isValid}
                             className="group flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40"
                         >
-                            Continue to Documents
+                            Continue to Document Review
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>
                         <p className="mt-4 text-[10px] text-white/20 font-medium">
-                            Your progress is automatically saved.
+                            Step 4 of 9 · Your progress is automatically saved.
                         </p>
                     </div>
                 </div>
@@ -112,7 +147,7 @@ export default function DetailsPage() {
             {/* ── RIGHT: CONTEXTUAL VISUAL ───────────────────────────────── */}
             <div className="hidden lg:flex w-[420px] xl:w-[480px] flex-col justify-center px-12 xl:px-16 border-l border-white/[0.05] bg-[#060606]">
                 <AIGuidance
-                    step="01"
+                    step="04"
                     title="Identity Verification"
                     message={AI_HINT}
                     status="Awaiting input"
@@ -127,7 +162,8 @@ export default function DetailsPage() {
                     {[
                         { label: "Full Name", val: form.firstName ? `${form.firstName} ${form.lastName}`.trim() : "—" },
                         { label: "Email", val: form.email || "—" },
-                        { label: "Org", val: form.org || "—" },
+                        { label: "Date of Birth", val: form.dob || "—" },
+                        { label: "Nationality", val: form.nationality || "—" },
                         { label: "Status", val: isValid ? "Ready" : "Incomplete", accent: isValid },
                     ].map((row, i) => (
                         <div key={i} className="flex justify-between items-center py-2 border-b border-white/5">

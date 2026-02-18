@@ -20,7 +20,7 @@ export default function BiometricsPage() {
                 c = 98.4;
                 clearInterval(interval);
                 setState("done");
-                setTimeout(() => router.push("/onboarding/processing"), 1000);
+                setTimeout(() => router.push("/onboarding/address"), 1000);
             }
             setConfidence(parseFloat(c.toFixed(1)));
         }, 120);
@@ -35,9 +35,9 @@ export default function BiometricsPage() {
                 <div className="mb-10">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center">
-                            <span className="text-[8px] font-black text-primary">03</span>
+                            <span className="text-[8px] font-black text-primary">05</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Biometric Verification</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Biometric Verification · Step 5 of 9</span>
                     </div>
                     <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight mb-3">
                         Prove you're<br />
@@ -139,7 +139,7 @@ export default function BiometricsPage() {
             {/* ── RIGHT: CONTEXTUAL VISUAL ───────────────────────────────── */}
             <div className="hidden lg:flex w-[420px] xl:w-[480px] flex-col justify-center px-12 xl:px-16 border-l border-white/[0.05] bg-[#060606] gap-8">
                 <AIGuidance
-                    step="03"
+                    step="05"
                     title="Passive Liveness Detection"
                     message="Our 3D facial mapping engine analyzes 68 facial landmarks in real-time. No gestures required — the system detects genuine presence through micro-expression analysis."
                     status={state === "idle" ? "Awaiting activation" : state === "scanning" ? "Scanning…" : "Verified ✓"}
