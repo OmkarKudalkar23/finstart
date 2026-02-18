@@ -3,16 +3,20 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, FileText, CheckCircle2, Lock, ArrowRight, X, Eye, ImageIcon } from "lucide-react";
+import { Upload, FileText, CheckCircle2, Lock, ArrowRight, X, Eye, ImageIcon, Scan, Sparkles, AlertTriangle, ShieldCheck, ShieldX } from "lucide-react";
 import { AIGuidance } from "@/components/onboarding/AIGuidance";
 
 interface UploadedFile {
     name: string;
     size: string;
     type: string;
-    status: "uploading" | "done" | "error";
+    status: "uploading" | "done" | "invalid" | "error";
     progress: number;
     preview?: string;
+    extractedData?: Record<string, string>;
+    isValid?: boolean;
+    documentType?: string;
+    rejectionReason?: string;
 }
 
 type DocType = "id" | "address";
@@ -23,10 +27,10 @@ export default function DocumentsPage() {
     const [addressFile, setAddressFile] = useState<UploadedFile | null>(null);
     const [draggingOver, setDraggingOver] = useState<DocType | null>(null);
 
-    const simulateUpload = (docType: DocType, file: File) => {
+    const handleUpload = async (docType: DocType, file: File) => {
         const preview = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
 
-        const uploadedFile: UploadedFile = {
+        const initialFile: UploadedFile = {
             name: file.name,
             size: `${(file.size / 1024).toFixed(1)} KB`,
             type: file.name.split(".").pop()?.toUpperCase() || "FILE",
@@ -35,36 +39,70 @@ export default function DocumentsPage() {
             preview
         };
 
-        if (docType === "id") setIdFile(uploadedFile);
-        else setAddressFile(uploadedFile);
+        if (docType === "id") setIdFile(initialFile);
+        else setAddressFile(initialFile);
 
+        // Simulate progress for UI
         let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15 + 5;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                const done = { ...uploadedFile, status: "done" as const, progress: 100 };
-                if (docType === "id") setIdFile(done);
-                else setAddressFile(done);
-            } else {
-                const updating = { ...uploadedFile, progress: Math.round(progress) };
-                if (docType === "id") setIdFile(updating);
-                else setAddressFile(updating);
-            }
-        }, 150);
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 30;
+            if (progress >= 95) progress = 95;
+            if (docType === "id") setIdFile(prev => prev ? { ...prev, progress: Math.min(Math.round(progress), 95) } : null);
+            else setAddressFile(prev => prev ? { ...prev, progress: Math.min(Math.round(progress), 95) } : null);
+        }, 200);
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("docType", docType);
+
+            const response = await fetch("/api/ocr", {
+                method: "POST",
+                body: formData,
+            });
+
+            clearInterval(progressInterval);
+
+            if (!response.ok) throw new Error("OCR Failed");
+
+            const result = await response.json();
+
+            const resultFile: UploadedFile = {
+                ...initialFile,
+                status: result.is_valid ? "done" : "invalid",
+                progress: 100,
+                isValid: result.is_valid,
+                documentType: result.document_type,
+                rejectionReason: result.rejection_reason,
+                extractedData: result.is_valid ? result.data : undefined,
+            };
+
+            if (docType === "id") setIdFile(resultFile);
+            else setAddressFile(resultFile);
+
+        } catch (error) {
+            clearInterval(progressInterval);
+            const errorFile: UploadedFile = {
+                ...initialFile,
+                status: "error",
+                progress: 0
+            };
+            if (docType === "id") setIdFile(errorFile);
+            else setAddressFile(errorFile);
+            console.error("Upload error:", error);
+        }
     };
 
     const handleDrop = useCallback((docType: DocType, e: React.DragEvent) => {
         e.preventDefault();
         setDraggingOver(null);
         const file = e.dataTransfer.files[0];
-        if (file) simulateUpload(docType, file);
+        if (file) handleUpload(docType, file);
     }, []);
 
     const handleFileInput = (docType: DocType, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) simulateUpload(docType, file);
+        if (file) handleUpload(docType, file);
     };
 
     const removeFile = (docType: DocType) => {
@@ -165,16 +203,29 @@ export default function DocumentsPage() {
             <div className="hidden lg:flex w-[420px] xl:w-[480px] flex-col justify-center px-12 xl:px-16 border-l border-white/[0.05] bg-[#060606] gap-8">
                 <AIGuidance
                     step="03"
-                    title="Document Intelligence"
-                    message="Our AI-powered OCR engine extracts data from your documents in real-time — name, date of birth, address, and security features — then cross-validates against issuing authority databases."
-                    status="Ready to scan"
+                    title="Mistral AI Intelligence"
+                    message="Pixtral-12B vision model is analyzing your documents. We extract key credentials and cross-validate them against issuing authority databases in real-time."
+                    status={
+                        idFile?.status === "uploading" || addressFile?.status === "uploading"
+                            ? "AI Analysis in progress..."
+                            : canProceed
+                                ? "Extraction Complete ✓"
+                                : "Ready to scan"
+                    }
                 />
 
                 {/* Document preview panel */}
                 <div className="rounded-[1.5rem] border border-white/10 bg-black/60 overflow-hidden">
-                    <div className="p-4 border-b border-white/5 flex items-center gap-2">
-                        <Eye className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Document Preview</span>
+                    <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Eye className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Live OCR Feed</span>
+                        </div>
+                        {(idFile?.status === "uploading" || addressFile?.status === "uploading") && (
+                            <span className="flex items-center gap-1 text-[8px] font-black text-primary animate-pulse uppercase tracking-tighter">
+                                <Scan className="w-3 h-3" /> Scanning...
+                            </span>
+                        )}
                     </div>
                     <div className="p-5 space-y-4">
 
@@ -182,19 +233,34 @@ export default function DocumentsPage() {
                         <div className="space-y-2">
                             <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Identity Proof</p>
                             <div className="aspect-[1.6/1] rounded-xl bg-white/[0.03] border border-white/[0.06] relative overflow-hidden flex items-center justify-center">
-                                {idFile?.preview && idFile.status === "done" ? (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <img src={idFile.preview} alt="ID Preview" className="w-full h-full object-cover opacity-60" />
-                                        <div className="absolute inset-0 bg-accent/10 flex flex-col items-center justify-center gap-2">
-                                            <CheckCircle2 className="w-8 h-8 text-accent" />
-                                            <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
-                                        </div>
-                                    </div>
-                                ) : idFile?.status === "done" ? (
-                                    <div className="absolute inset-0 bg-accent/5 flex flex-col items-center justify-center gap-2">
-                                        <CheckCircle2 className="w-8 h-8 text-accent" />
-                                        <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
-                                    </div>
+                                {idFile?.preview ? (
+                                    <>
+                                        <img
+                                            src={idFile.preview}
+                                            alt="ID Preview"
+                                            className={`w-full h-full object-cover transition-all duration-500 ${idFile.status === "uploading" ? "opacity-25 blur-[1px]" : "opacity-60"
+                                                }`}
+                                        />
+                                        {idFile.status === "uploading" && (
+                                            <motion.div
+                                                animate={{ top: ["-5%", "105%"] }}
+                                                transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
+                                                className="absolute left-0 right-0 h-[2px] bg-primary shadow-[0_0_16px_4px_rgba(139,92,246,0.8)] z-10"
+                                            />
+                                        )}
+                                        {idFile.status === "done" && (
+                                            <div className="absolute inset-0 bg-accent/10 flex flex-col items-center justify-center gap-2">
+                                                <ShieldCheck className="w-8 h-8 text-accent" />
+                                                <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
+                                            </div>
+                                        )}
+                                        {idFile.status === "invalid" && (
+                                            <div className="absolute inset-0 bg-red-500/15 flex flex-col items-center justify-center gap-2">
+                                                <ShieldX className="w-8 h-8 text-red-400" />
+                                                <p className="text-[9px] font-black text-red-400 uppercase tracking-widest">Rejected</p>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : idFile?.status === "uploading" ? (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                                         <motion.div
@@ -214,19 +280,34 @@ export default function DocumentsPage() {
                         <div className="space-y-2">
                             <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Address Proof</p>
                             <div className="aspect-[1.6/1] rounded-xl bg-white/[0.03] border border-white/[0.06] relative overflow-hidden flex items-center justify-center">
-                                {addressFile?.preview && addressFile.status === "done" ? (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <img src={addressFile.preview} alt="Address Preview" className="w-full h-full object-cover opacity-60" />
-                                        <div className="absolute inset-0 bg-accent/10 flex flex-col items-center justify-center gap-2">
-                                            <CheckCircle2 className="w-8 h-8 text-accent" />
-                                            <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
-                                        </div>
-                                    </div>
-                                ) : addressFile?.status === "done" ? (
-                                    <div className="absolute inset-0 bg-accent/5 flex flex-col items-center justify-center gap-2">
-                                        <CheckCircle2 className="w-8 h-8 text-accent" />
-                                        <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
-                                    </div>
+                                {addressFile?.preview ? (
+                                    <>
+                                        <img
+                                            src={addressFile.preview}
+                                            alt="Address Preview"
+                                            className={`w-full h-full object-cover transition-all duration-500 ${addressFile.status === "uploading" ? "opacity-25 blur-[1px]" : "opacity-60"
+                                                }`}
+                                        />
+                                        {addressFile.status === "uploading" && (
+                                            <motion.div
+                                                animate={{ top: ["-5%", "105%"] }}
+                                                transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
+                                                className="absolute left-0 right-0 h-[2px] bg-primary shadow-[0_0_16px_4px_rgba(139,92,246,0.8)] z-10"
+                                            />
+                                        )}
+                                        {addressFile.status === "done" && (
+                                            <div className="absolute inset-0 bg-accent/10 flex flex-col items-center justify-center gap-2">
+                                                <ShieldCheck className="w-8 h-8 text-accent" />
+                                                <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
+                                            </div>
+                                        )}
+                                        {addressFile.status === "invalid" && (
+                                            <div className="absolute inset-0 bg-red-500/15 flex flex-col items-center justify-center gap-2">
+                                                <ShieldX className="w-8 h-8 text-red-400" />
+                                                <p className="text-[9px] font-black text-red-400 uppercase tracking-widest">Rejected</p>
+                                            </div>
+                                        )}
+                                    </>
                                 ) : addressFile?.status === "uploading" ? (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                                         <motion.div
@@ -234,7 +315,7 @@ export default function DocumentsPage() {
                                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                                             className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent"
                                         />
-                                        <p className="text-[9px] font-black text-primary uppercase tracking-widest">{addressFile.progress}%</p>
+                                        <p className="text-[9px] font-black text-primary uppercase tracking-widest">{addressFile?.progress}%</p>
                                     </div>
                                 ) : (
                                     <ImageIcon className="w-8 h-8 text-white/10" />
@@ -242,17 +323,63 @@ export default function DocumentsPage() {
                             </div>
                         </div>
 
-                        {/* Extraction status */}
-                        {[
-                            { label: "ID Document", val: idFile?.status === "done" ? idFile.name : "—", accent: idFile?.status === "done" },
-                            { label: "Address Proof", val: addressFile?.status === "done" ? addressFile.name : "—", accent: addressFile?.status === "done" },
-                            { label: "OCR Status", val: canProceed ? "Complete" : "Awaiting", accent: canProceed },
-                        ].map((row, i) => (
-                            <div key={i} className="flex justify-between items-center py-1.5 border-b border-white/5">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white/25">{row.label}</span>
-                                <span className={`text-[10px] font-bold truncate max-w-[140px] ${row.accent ? "text-accent" : "text-white/40"}`}>{row.val}</span>
+
+                        {/* OCR Extracted Data */}
+                        <div className="border-t border-white/5 pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-1.5">
+                                    <Sparkles className="w-3 h-3 text-primary" />
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Mistral OCR Extracts</p>
+                                </div>
+                                {canProceed && (
+                                    <span className="text-[8px] font-black text-accent border border-accent/30 px-2 py-0.5 rounded-full bg-accent/5">Certified</span>
+                                )}
                             </div>
-                        ))}
+
+                            <div className="max-h-[180px] overflow-y-auto space-y-0.5 pr-0.5">
+                                {(() => {
+                                    const allData = {
+                                        ...(idFile?.extractedData || {}),
+                                        ...(addressFile?.extractedData || {})
+                                    };
+                                    const entries = Object.entries(allData);
+
+                                    if (entries.length === 0) {
+                                        return (
+                                            <div className="py-6 flex flex-col items-center gap-2 border border-dashed border-white/10 rounded-xl bg-white/[0.01]">
+                                                <Scan className="w-5 h-5 text-white/15 animate-pulse" />
+                                                <p className="text-[10px] text-white/20 font-medium italic">Awaiting document scan...</p>
+                                            </div>
+                                        );
+                                    }
+
+                                    return entries.map(([key, val], i) => (
+                                        <motion.div
+                                            key={i}
+                                            initial={{ opacity: 0, x: -8 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.06, duration: 0.3 }}
+                                            className="flex justify-between items-center py-2 px-2 rounded-lg hover:bg-white/[0.03] border-b border-white/[0.04] last:border-0 group transition-colors"
+                                        >
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-white/25 group-hover:text-primary transition-colors">
+                                                {key.replace(/_/g, " ")}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-accent truncate max-w-[160px] bg-accent/5 border border-accent/10 px-2 py-0.5 rounded-md">
+                                                {String(val)}
+                                            </span>
+                                        </motion.div>
+                                    ));
+                                })()}
+                            </div>
+
+                            {/* Footer status */}
+                            <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center">
+                                <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Model</span>
+                                <span className={`text-[9px] font-bold ${canProceed ? "text-accent" : "text-white/30"}`}>
+                                    {canProceed ? "Pixtral-12B · Verified" : "Pixtral-12B · Idle"}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -282,7 +409,12 @@ function UploadZone({
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{label}</label>
                 {file?.status === "done" && (
                     <span className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Uploaded
+                        <ShieldCheck className="w-3 h-3" /> Verified
+                    </span>
+                )}
+                {file?.status === "invalid" && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-400 flex items-center gap-1">
+                        <ShieldX className="w-3 h-3" /> Invalid
                     </span>
                 )}
             </div>
@@ -296,15 +428,19 @@ function UploadZone({
                         exit={{ opacity: 0, scale: 0.97 }}
                         className={`rounded-xl border p-4 ${file.status === "done"
                             ? "border-accent/30 bg-accent/5"
-                            : "border-primary/30 bg-primary/5"
+                            : file.status === "invalid"
+                                ? "border-red-500/30 bg-red-500/5"
+                                : "border-primary/30 bg-primary/5"
                             }`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden ${file.status === "done" ? "bg-accent/20" : "bg-primary/20"}`}>
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden ${file.status === "done" ? "bg-accent/20" : file.status === "invalid" ? "bg-red-500/20" : "bg-primary/20"
+                                }`}>
                                 {file.preview ? (
                                     <img src={file.preview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
-                                    <FileText className={`w-5 h-5 ${file.status === "done" ? "text-accent" : "text-primary"}`} />
+                                    <FileText className={`w-5 h-5 ${file.status === "done" ? "text-accent" : file.status === "invalid" ? "text-red-400" : "text-primary"
+                                        }`} />
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -319,11 +455,17 @@ function UploadZone({
                                                 transition={{ duration: 0.1 }}
                                             />
                                         </div>
-                                        <p className="text-[9px] text-primary font-black">{file.progress}% uploading…</p>
+                                        <p className="text-[9px] text-primary font-black">{file.progress}% analyzing…</p>
                                     </div>
                                 )}
+                                {file.status === "done" && file.documentType && (
+                                    <p className="text-[9px] text-accent font-black mt-0.5">{file.documentType} · Verified</p>
+                                )}
+                                {file.status === "invalid" && (
+                                    <p className="text-[9px] text-red-400 font-black mt-0.5">{file.documentType || "Unknown document"}</p>
+                                )}
                             </div>
-                            {file.status === "done" && (
+                            {(file.status === "done" || file.status === "invalid" || file.status === "error") && (
                                 <button
                                     onClick={onRemove}
                                     className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white/60 transition-colors"
@@ -332,6 +474,22 @@ function UploadZone({
                                 </button>
                             )}
                         </div>
+
+                        {/* Rejection reason banner */}
+                        {file.status === "invalid" && file.rejectionReason && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20"
+                            >
+                                <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400 mb-0.5">Document Rejected</p>
+                                    <p className="text-[10px] text-red-300/80 font-medium leading-relaxed">{file.rejectionReason}</p>
+                                    <p className="text-[9px] text-white/30 font-medium mt-1">Please upload a valid document and try again.</p>
+                                </div>
+                            </motion.div>
+                        )}
                     </motion.div>
                 ) : (
                     <motion.label
