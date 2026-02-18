@@ -1,27 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, User, Building2, Mail, Phone, CreditCard, CheckCircle2, Calendar } from "lucide-react";
 import { AIGuidance } from "@/components/onboarding/AIGuidance";
+import { AdvancedOnboardingFeatures, useAdvancedOnboarding } from "@/components/advanced/AdvancedOnboardingFeatures";
 
 const AI_HINT = "I'll use your legal name and details to cross-reference identity records across 5,000+ global databases. All data is encrypted at rest with AES-256.";
 
-export default function DetailsPage() {
+// Generate a mock user ID for demo purposes
+const generateUserId = () => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+function DetailsPageContent() {
     const router = useRouter();
     const [form, setForm] = useState({
         firstName: "", lastName: "", email: "", phone: "", dob: "", nationality: "", org: ""
     });
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [userId] = useState(generateUserId());
+    
+    const { 
+        currentRiskScore, 
+        updateRiskFactors, 
+        trackActivity 
+    } = useAdvancedOnboarding();
 
     const isValid = form.firstName.trim() && form.lastName.trim() && form.email.includes("@") && form.dob;
 
-    const handleBlur = (field: string) => setTouched(t => ({ ...t, [field]: true }));
-    const handleChange = (field: string, val: string) => setForm(f => ({ ...f, [field]: val }));
+    const handleBlur = (field: string) => {
+        setTouched(t => ({ ...t, [field]: true }));
+        // Track activity for drop-off recovery
+        trackActivity(userId, "details", 50, form);
+    };
+    
+    const handleChange = (field: string, val: string) => {
+        setForm(f => ({ ...f, [field]: val }));
+    };
 
-    const handleNext = () => {
-        if (isValid) router.push("/onboarding/identity");
+    const handleNext = async () => {
+        if (isValid) {
+            // Update risk factors with details data
+            await updateRiskFactors({
+                behavioral: {
+                    completionTime: 180, // 3 minutes on this step
+                    deviceFingerprint: "demo_device",
+                    ipAddress: "192.168.1.1",
+                    locationConsistency: true
+                }
+            });
+            
+            // Track completion
+            trackActivity(userId, "details", 100, form);
+            
+            router.push("/onboarding/identity");
+        }
+    };
+
+    const handleEscalation = (reason: string) => {
+        console.log("Escalation triggered:", reason);
+        // In real implementation, this would show a modal or redirect to support
     };
 
     return (
@@ -222,5 +260,25 @@ function Field({
             {error && <p className="text-[10px] text-red-400 font-bold">{error}</p>}
             {hint && !error && <p className="text-[10px] text-white/25 font-medium">{hint}</p>}
         </div>
+    );
+}
+
+// Export the page with advanced features wrapper
+export default function DetailsPage() {
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    return (
+        <AdvancedOnboardingFeatures
+            userId={userId}
+            currentStep="details"
+            onStepComplete={(step, data) => {
+                console.log("Step completed:", step, data);
+            }}
+            onEscalation={(reason) => {
+                console.log("Escalation requested:", reason);
+            }}
+        >
+            <DetailsPageContent />
+        </AdvancedOnboardingFeatures>
     );
 }
