@@ -12,6 +12,7 @@ interface UploadedFile {
     type: string;
     status: "uploading" | "done" | "error";
     progress: number;
+    preview?: string;
 }
 
 type DocType = "id" | "address";
@@ -22,17 +23,20 @@ export default function DocumentsPage() {
     const [addressFile, setAddressFile] = useState<UploadedFile | null>(null);
     const [draggingOver, setDraggingOver] = useState<DocType | null>(null);
 
-    const simulateUpload = (docType: DocType, fileName: string, fileSize: number) => {
-        const file: UploadedFile = {
-            name: fileName,
-            size: `${(fileSize / 1024).toFixed(1)} KB`,
-            type: fileName.split(".").pop()?.toUpperCase() || "FILE",
+    const simulateUpload = (docType: DocType, file: File) => {
+        const preview = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+
+        const uploadedFile: UploadedFile = {
+            name: file.name,
+            size: `${(file.size / 1024).toFixed(1)} KB`,
+            type: file.name.split(".").pop()?.toUpperCase() || "FILE",
             status: "uploading",
             progress: 0,
+            preview
         };
 
-        if (docType === "id") setIdFile(file);
-        else setAddressFile(file);
+        if (docType === "id") setIdFile(uploadedFile);
+        else setAddressFile(uploadedFile);
 
         let progress = 0;
         const interval = setInterval(() => {
@@ -40,11 +44,11 @@ export default function DocumentsPage() {
             if (progress >= 100) {
                 progress = 100;
                 clearInterval(interval);
-                const done = { ...file, status: "done" as const, progress: 100 };
+                const done = { ...uploadedFile, status: "done" as const, progress: 100 };
                 if (docType === "id") setIdFile(done);
                 else setAddressFile(done);
             } else {
-                const updating = { ...file, progress: Math.round(progress) };
+                const updating = { ...uploadedFile, progress: Math.round(progress) };
                 if (docType === "id") setIdFile(updating);
                 else setAddressFile(updating);
             }
@@ -55,17 +59,22 @@ export default function DocumentsPage() {
         e.preventDefault();
         setDraggingOver(null);
         const file = e.dataTransfer.files[0];
-        if (file) simulateUpload(docType, file.name, file.size);
+        if (file) simulateUpload(docType, file);
     }, []);
 
     const handleFileInput = (docType: DocType, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) simulateUpload(docType, file.name, file.size);
+        if (file) simulateUpload(docType, file);
     };
 
     const removeFile = (docType: DocType) => {
-        if (docType === "id") setIdFile(null);
-        else setAddressFile(null);
+        if (docType === "id") {
+            if (idFile?.preview) URL.revokeObjectURL(idFile.preview);
+            setIdFile(null);
+        } else {
+            if (addressFile?.preview) URL.revokeObjectURL(addressFile.preview);
+            setAddressFile(null);
+        }
     };
 
     const canProceed = idFile?.status === "done" && addressFile?.status === "done";
@@ -173,7 +182,15 @@ export default function DocumentsPage() {
                         <div className="space-y-2">
                             <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Identity Proof</p>
                             <div className="aspect-[1.6/1] rounded-xl bg-white/[0.03] border border-white/[0.06] relative overflow-hidden flex items-center justify-center">
-                                {idFile?.status === "done" ? (
+                                {idFile?.preview && idFile.status === "done" ? (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <img src={idFile.preview} alt="ID Preview" className="w-full h-full object-cover opacity-60" />
+                                        <div className="absolute inset-0 bg-accent/10 flex flex-col items-center justify-center gap-2">
+                                            <CheckCircle2 className="w-8 h-8 text-accent" />
+                                            <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
+                                        </div>
+                                    </div>
+                                ) : idFile?.status === "done" ? (
                                     <div className="absolute inset-0 bg-accent/5 flex flex-col items-center justify-center gap-2">
                                         <CheckCircle2 className="w-8 h-8 text-accent" />
                                         <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
@@ -197,7 +214,15 @@ export default function DocumentsPage() {
                         <div className="space-y-2">
                             <p className="text-[9px] font-black uppercase tracking-widest text-white/20">Address Proof</p>
                             <div className="aspect-[1.6/1] rounded-xl bg-white/[0.03] border border-white/[0.06] relative overflow-hidden flex items-center justify-center">
-                                {addressFile?.status === "done" ? (
+                                {addressFile?.preview && addressFile.status === "done" ? (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <img src={addressFile.preview} alt="Address Preview" className="w-full h-full object-cover opacity-60" />
+                                        <div className="absolute inset-0 bg-accent/10 flex flex-col items-center justify-center gap-2">
+                                            <CheckCircle2 className="w-8 h-8 text-accent" />
+                                            <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
+                                        </div>
+                                    </div>
+                                ) : addressFile?.status === "done" ? (
                                     <div className="absolute inset-0 bg-accent/5 flex flex-col items-center justify-center gap-2">
                                         <CheckCircle2 className="w-8 h-8 text-accent" />
                                         <p className="text-[9px] font-black text-accent uppercase tracking-widest">Verified</p>
@@ -275,8 +300,12 @@ function UploadZone({
                             }`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${file.status === "done" ? "bg-accent/20" : "bg-primary/20"}`}>
-                                <FileText className={`w-5 h-5 ${file.status === "done" ? "text-accent" : "text-primary"}`} />
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden ${file.status === "done" ? "bg-accent/20" : "bg-primary/20"}`}>
+                                {file.preview ? (
+                                    <img src={file.preview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <FileText className={`w-5 h-5 ${file.status === "done" ? "text-accent" : "text-primary"}`} />
+                                )}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-bold text-white truncate">{file.name}</p>

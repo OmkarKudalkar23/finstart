@@ -63,11 +63,11 @@ const STEP_GUIDANCE = {
   }
 };
 
-export function AIOnboardingCopilot({ 
-  className, 
+export function AIOnboardingCopilot({
+  className,
   currentStep = "identity",
   userConfidence = 0.8,
-  onEscalate 
+  onEscalate
 }: AIOnboardingCopilotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -137,7 +137,7 @@ export function AIOnboardingCopilot({
 
   const generateAIResponse = (userInput: string): string => {
     const input = userInput.toLowerCase();
-    
+
     if (input.includes("why") || input.includes("need")) {
       return stepInfo.why;
     }
@@ -153,7 +153,7 @@ export function AIOnboardingCopilot({
     if (input.includes("human") || input.includes("person") || input.includes("agent")) {
       return "I can connect you with a human specialist right away. Would you like me to do that?";
     }
-    
+
     return "I'm here to help! Could you be more specific about what you need assistance with?";
   };
 
@@ -198,9 +198,9 @@ export function AIOnboardingCopilot({
         >
           {/* Glow effect */}
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent opacity-20 blur-xl group-hover:opacity-40 transition-opacity" />
-          
+
           <MessageCircle className="w-6 h-6 text-white" />
-          
+
           {/* Notification dot */}
           {hasNewMessage && (
             <motion.div
@@ -238,7 +238,7 @@ export function AIOnboardingCopilot({
             <div className="relative">
               {/* Glassmorphic container */}
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl" />
-              
+
               <div className="relative rounded-2xl overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/5">
