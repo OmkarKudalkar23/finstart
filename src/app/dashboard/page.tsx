@@ -1,4 +1,4 @@
-k"use client";
+"use client";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/Card";
