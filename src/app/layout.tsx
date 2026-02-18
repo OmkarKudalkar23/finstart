@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Finstart AI — Intelligent Customer Onboarding",
   description: "Digitize and automate the entire banking onboarding lifecycle with AI-powered verification and compliance.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

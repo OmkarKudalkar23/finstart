@@ -203,8 +203,8 @@ export default function DocumentsPage() {
             <div className="hidden lg:flex w-[420px] xl:w-[480px] flex-col justify-center px-12 xl:px-16 border-l border-white/[0.05] bg-[#060606] gap-8">
                 <AIGuidance
                     step="03"
-                    title="Mistral AI Intelligence"
-                    message="Pixtral-12B vision model is analyzing your documents. We extract key credentials and cross-validate them against issuing authority databases in real-time."
+                    title="FinStart Intelligence"
+                    message="Our AI engine analyzes your documents in real-time, extracting key credentials and cross-validating them against issuing authority databases for instant verification."
                     status={
                         idFile?.status === "uploading" || addressFile?.status === "uploading"
                             ? "AI Analysis in progress..."

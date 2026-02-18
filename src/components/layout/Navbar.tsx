@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -18,7 +18,11 @@ import {
     CreditCard,
     Lock,
     PieChart,
-    Command
+    Command,
+    CheckCircle2,
+    AlertTriangle,
+    Sparkles,
+    TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +30,54 @@ export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [notifOpen, setNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState([
+        {
+            id: 1,
+            icon: CheckCircle2,
+            color: "text-emerald-400",
+            bg: "bg-emerald-400/10",
+            title: "KYC Approved",
+            desc: "Your identity verification is complete. You're fully verified.",
+            time: "2 min ago",
+            unread: true,
+        },
+        {
+            id: 2,
+            icon: CreditCard,
+            color: "text-primary",
+            bg: "bg-primary/10",
+            title: "Card Dispatched",
+            desc: "Your FinStart Visa card has been shipped. ETA: 3–5 business days.",
+            time: "1 hr ago",
+            unread: true,
+        },
+        {
+            id: 3,
+            icon: AlertTriangle,
+            color: "text-amber-400",
+            bg: "bg-amber-400/10",
+            title: "Suspicious Login Attempt",
+            desc: "A login from Mumbai, IN was blocked. Secure your account.",
+            time: "3 hr ago",
+            unread: true,
+        },
+        {
+            id: 4,
+            icon: TrendingUp,
+            color: "text-accent",
+            bg: "bg-accent/10",
+            title: "Cashback Credited",
+            desc: "₹248 cashback added to your wallet from last month's spends.",
+            time: "Yesterday",
+            unread: false,
+        },
+    ]);
+    const notifRef = useRef<HTMLDivElement>(null);
+
+    const unreadCount = notifications.filter(n => n.unread).length;
+
+    const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
 
     useEffect(() => {
         const handleScroll = () => {
@@ -33,6 +85,16 @@ export function Navbar() {
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+                setNotifOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const navLinks = [
@@ -53,16 +115,24 @@ export function Navbar() {
         >
             <div className={cn(
                 "max-w-[1400px] mx-auto relative flex items-center justify-between px-4 lg:px-8 h-14 lg:h-16 rounded-2xl transition-all duration-500",
-                "border border-white/5 shadow-2xl overflow-hidden",
+                "border border-white/5 shadow-2xl",
                 isScrolled
-                    ? "bg-black/40 backdrop-blur-2xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
-                    : "bg-white/[0.02] backdrop-blur-md"
+                    ? "border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+                    : ""
             )}>
-                {/* Ambient Glow behind the navbar on scroll */}
+                {/* Background Layer with Overflow Hidden for clipping effects */}
                 <div className={cn(
-                    "absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-500",
-                    isScrolled && "opacity-100"
-                )} />
+                    "absolute inset-0 rounded-2xl overflow-hidden pointer-events-none transition-all duration-500",
+                    isScrolled
+                        ? "bg-black/40 backdrop-blur-2xl"
+                        : "bg-white/[0.02] backdrop-blur-md"
+                )}>
+                    {/* Ambient Glow */}
+                    <div className={cn(
+                        "absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-500",
+                        isScrolled && "opacity-100"
+                    )} />
+                </div>
 
                 {/* --- LEFT: BRAND BLOCK --- */}
                 <div className="flex items-center gap-12 relative z-10">
@@ -152,10 +222,87 @@ export function Navbar() {
 
 
                     {/* Notification Center */}
-                    <button className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all group relative">
-                        <Bell className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
-                        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-black animate-pulse" />
-                    </button>
+                    <div className="relative" ref={notifRef}>
+                        <button
+                            onClick={() => setNotifOpen(prev => !prev)}
+                            className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all group relative"
+                        >
+                            <Bell className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-black animate-pulse" />
+                            )}
+                        </button>
+
+                        {/* Notification Dropdown */}
+                        <AnimatePresence>
+                            {notifOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                                    transition={{ duration: 0.18 }}
+                                    className="absolute right-0 top-14 w-[360px] bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
+                                >
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+                                        <div className="flex items-center gap-2">
+                                            <Bell className="w-3.5 h-3.5 text-primary" />
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-white">Notifications</span>
+                                            {unreadCount > 0 && (
+                                                <span className="text-[9px] font-black bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded-full">{unreadCount} new</span>
+                                            )}
+                                        </div>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                onClick={markAllRead}
+                                                className="text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-primary transition-colors"
+                                            >
+                                                Mark all read
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Notification Items */}
+                                    <div className="divide-y divide-white/[0.04]">
+                                        {notifications.map((notif, i) => (
+                                            <motion.div
+                                                key={notif.id}
+                                                initial={{ opacity: 0, x: -8 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: i * 0.05 }}
+                                                className={`flex items-start gap-3 px-5 py-4 hover:bg-white/[0.03] transition-colors cursor-pointer group ${notif.unread ? "bg-white/[0.02]" : ""
+                                                    }`}
+                                                onClick={() => setNotifications(prev =>
+                                                    prev.map(n => n.id === notif.id ? { ...n, unread: false } : n)
+                                                )}
+                                            >
+                                                <div className={`w-8 h-8 rounded-xl ${notif.bg} flex items-center justify-center shrink-0 mt-0.5`}>
+                                                    <notif.icon className={`w-4 h-4 ${notif.color}`} />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                        <p className={`text-[11px] font-black ${notif.unread ? "text-white" : "text-white/50"}`}>{notif.title}</p>
+                                                        <span className="text-[9px] text-white/25 shrink-0">{notif.time}</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-white/40 leading-relaxed">{notif.desc}</p>
+                                                </div>
+                                                {notif.unread && (
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
+                                                )}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className="px-5 py-3 border-t border-white/5 flex items-center justify-center">
+                                        <button className="text-[9px] font-black uppercase tracking-widest text-white/25 hover:text-primary transition-colors">
+                                            View all activity →
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
 
                     <div className="h-8 w-px bg-white/5 hidden md:block" />
 
