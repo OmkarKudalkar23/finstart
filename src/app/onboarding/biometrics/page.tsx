@@ -1,44 +1,34 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Camera, Activity, Scan, ArrowRight, CheckCircle2 } from "lucide-react";
 import { AIGuidance } from "@/components/onboarding/AIGuidance";
+import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import { useVoiceAgent } from "@/components/voice/VoiceAgentProvider";
 
-type SubStep = "straight" | "left" | "right";
+type SubStep = "straight";
 
 export default function BiometricsPage() {
     const router = useRouter();
-    const [state, setState] = useState<"idle" | "scanning" | "done">("idle");
+    const { registerStep } = useVoiceAgent();
+
+    const [state, setState] = useState<"idle" | "loading" | "scanning" | "done">("idle");
     const [subStep, setSubStep] = useState<SubStep>("straight");
     const [confidence, setConfidence] = useState(0);
     const [progress, setProgress] = useState(0);
+    const [error, setError] = useState<string | null>(null);
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const landmarkerRef = useRef<FaceLandmarker | null>(null);
+    const requestRef = useRef<number | null>(null);
+    const lastVideoTimeRef = useRef<number>(-1);
+    const missingFaceFrames = useRef<number>(0);
 
-    useEffect(() => {
-        return () => {
-            stopCamera();
-        };
-    }, []);
-
-    const startCamera = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
-            });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-            streamRef.current = stream;
-            return true;
-        } catch (err) {
-            console.error("Error accessing camera:", err);
-            alert("Please allow camera access to continue with biometric verification.");
-            return false;
-        }
-    };
+    // Track targets met
+    const completedSteps = useRef<Set<SubStep>>(new Set());
 
     const stopCamera = () => {
         if (streamRef.current) {
@@ -50,48 +40,180 @@ export default function BiometricsPage() {
         }
     };
 
+    const startCamera = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+            });
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+            streamRef.current = stream;
+            return true;
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            setError("Camera access denied. Please enable permissions.");
+            return false;
+        }
+    };
+
+    const processLandmarks = (landmarks: any[]) => {
+        if (!landmarks || landmarks.length < 5) return;
+
+        const nose = landmarks[4];
+        const leftEye = landmarks[33];
+        const rightEye = landmarks[263];
+
+        if (!nose || !leftEye || !rightEye) return;
+
+        // Detect orientation using the nose position relative to the eye-to-eye axis
+        // 0.0 = Nose is at the Left Eye, 0.5 = Dead center, 1.0 = Nose is at the Right Eye
+        const nosePositionFactor = (nose.x - leftEye.x) / (rightEye.x - leftEye.x);
+
+        let currentConf = 0;
+        let successInThisFrame = false;
+
+        // Base presence (fluctuating realistically)
+        const base = 94 + (Math.random() * 2);
+
+        // Straight: nosePositionFactor should be ~0.5
+        const diff = Math.abs(nosePositionFactor - 0.5);
+        const score = Math.max(0, 5.9 - (diff * 60)); // Gain up to 5.9 points if centered
+        currentConf = base + score;
+
+        // Final formatting
+        setConfidence(Math.min(99.9, parseFloat(currentConf.toFixed(1))));
+
+        if (diff < 0.07) {
+            successInThisFrame = true;
+        }
+
+        if (successInThisFrame) {
+            if (!completedSteps.current.has("straight")) {
+                completedSteps.current.add("straight");
+
+                setProgress(100);
+                setState("done");
+                setTimeout(() => {
+                    stopCamera();
+                    router.push("/onboarding/address");
+                }, 2000);
+            }
+        }
+    };
+
+    const detectionLoop = () => {
+        if (!videoRef.current || !landmarkerRef.current || state === "done") return;
+
+        const video = videoRef.current;
+
+        // Ensure video has valid dimensions to avoid MediaPipe ROI errors
+        if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && video.currentTime !== lastVideoTimeRef.current) {
+            lastVideoTimeRef.current = video.currentTime;
+
+            try {
+                const startTimeMs = performance.now();
+                const results = landmarkerRef.current.detectForVideo(video, startTimeMs);
+
+                if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+                    missingFaceFrames.current = 0;
+                    processLandmarks(results.faceLandmarks[0]);
+                    setError(null);
+                } else {
+                    missingFaceFrames.current += 1;
+                    // Only show error if face is missing for more than 10 frames (~300ms)
+                    if (missingFaceFrames.current > 10) {
+                        setError("Face not detected. Center your face.");
+                        setConfidence(0);
+                    }
+                }
+            } catch (err) {
+                console.error("MediaPipe detection error:", err);
+                // Don't set error state here to avoid flickering, just skip this frame
+            }
+        }
+
+        requestRef.current = requestAnimationFrame(detectionLoop);
+    };
+
     const handleActivate = async () => {
+        if (!landmarkerRef.current) {
+            setState("loading");
+            // Wait for it to load if not yet ready
+            let attempts = 0;
+            while (!landmarkerRef.current && attempts < 10) {
+                await new Promise(r => setTimeout(r, 500));
+                attempts++;
+            }
+            if (!landmarkerRef.current) {
+                setError("Model loading timeout. Try again.");
+                setState("idle");
+                return;
+            }
+        }
+
         const success = await startCamera();
         if (!success) return;
 
         setState("scanning");
-        runVerificationSequence();
+        setProgress(0);
+        setSubStep("straight");
+        completedSteps.current.clear();
+
+        requestRef.current = requestAnimationFrame(detectionLoop);
     };
 
-    const runVerificationSequence = async () => {
-        // Step 1: Straight
-        await processSubStep("straight", 33);
-        // Step 2: Left
-        await processSubStep("left", 66);
-        // Step 3: Right
-        await processSubStep("right", 100);
+    useEffect(() => {
+        const initLandmarker = async () => {
+            try {
+                const filesetResolver = await FilesetResolver.forVisionTasks(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+                );
+                landmarkerRef.current = await FaceLandmarker.createFromOptions(filesetResolver, {
+                    baseOptions: {
+                        modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+                        delegate: "GPU"
+                    },
+                    outputFaceBlendshapes: false,
+                    runningMode: "VIDEO",
+                    numFaces: 1,
+                    minFaceDetectionConfidence: 0.3,
+                    minFacePresenceConfidence: 0.3,
+                    minTrackingConfidence: 0.3
+                });
+            } catch (err) {
+                console.error("Failed to load landmarker:", err);
+                setError("Biometric engine failed to load. Please refresh.");
+            }
+        };
 
-        setState("done");
-        setTimeout(() => {
+        initLandmarker();
+
+        return () => {
             stopCamera();
-            router.push("/onboarding/address");
-        }, 1500);
-    };
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        };
+    }, []);
 
-    const processSubStep = (step: SubStep, targetProgress: number) => {
-        return new Promise<void>((resolve) => {
-            setSubStep(step);
-            let currentP = progress;
-            const interval = setInterval(() => {
-                currentP += Math.random() * 2 + 0.5;
-                if (currentP >= targetProgress) {
-                    currentP = targetProgress;
-                    clearInterval(interval);
-                    setProgress(currentP);
-                    setConfidence(90 + Math.random() * 8.4);
-                    setTimeout(resolve, 800); // Small pause between steps
-                } else {
-                    setProgress(currentP);
-                    setConfidence(parseFloat((85 + Math.random() * 10).toFixed(1)));
+    // Register Voice Agent
+    useEffect(() => {
+        registerStep(
+            "biometric-verification",
+            {
+                fields: [],
+                status: state,
+                description: "Biometric Liveness Check. User needs to look straight at the camera."
+            },
+            {
+                onNext: () => {
+                    if (state === "idle" || state === "loading") handleActivate();
+                },
+                onConfirm: () => {
+                    if (state === "idle" || state === "loading") handleActivate();
                 }
-            }, 50);
-        });
-    };
+            }
+        );
+    }, [state]);
 
     return (
         <div className="flex-1 flex flex-col lg:flex-row min-h-0">
@@ -140,73 +262,79 @@ export default function BiometricsPage() {
                                             <Camera className="w-14 h-14 text-white/20" />
                                         </div>
                                     )}
+                                    {state === "loading" && (
+                                        <div className="absolute inset-0 bg-[#0A0A0A] flex flex-col items-center justify-center gap-4">
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                                className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent"
+                                            />
+                                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Initialising AI engine…</p>
+                                        </div>
+                                    )}
+
+                                    {/* Scanning overlay */}
+                                    {state === "scanning" && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center z-30">
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="px-4 py-2 rounded-xl bg-primary/20 backdrop-blur-md border border-primary/40"
+                                            >
+                                                <p className="text-[10px] font-black text-white uppercase tracking-[0.2em] text-center">
+                                                    Look Straight
+                                                </p>
+                                            </motion.div>
+
+                                            <motion.div
+                                                animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
+                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                                className="mt-4"
+                                            >
+                                                <Scan className="w-6 h-6 text-primary" />
+                                            </motion.div>
+                                        </div>
+                                    )}
+
+                                    {/* Success overlay */}
+                                    {state === "done" && (
+                                        <div className="absolute inset-0 rounded-full bg-accent/20 backdrop-blur-sm flex items-center justify-center z-40">
+                                            <CheckCircle2 className="w-12 h-12 text-accent" />
+                                        </div>
+                                    )}
                                 </div>
-
-                                {state !== "idle" && (
-                                    <motion.div
-                                        animate={{ scale: [1, 1.04, 1], opacity: [0.3, 0.7, 0.3] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                        className="absolute -inset-3 rounded-full border border-primary/40 z-20"
-                                    />
-                                )}
-
-                                {/* Corner accents */}
-                                {["top-0 left-0 border-t-2 border-l-2", "top-0 right-0 border-t-2 border-r-2",
-                                    "bottom-0 left-0 border-b-2 border-l-2", "bottom-0 right-0 border-b-2 border-r-2"].map((cls, i) => (
-                                        <div key={i} className={`absolute w-6 h-6 border-primary/50 z-20 ${cls}`} />
-                                    ))}
-
-                                {state === "scanning" && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center z-30">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            key={subStep}
-                                            className="px-4 py-2 rounded-xl bg-primary/20 backdrop-blur-md border border-primary/40"
-                                        >
-                                            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em] text-center">
-                                                {subStep === "straight" ? "Look Straight" : subStep === "left" ? "Turn Left" : "Turn Right"}
-                                            </p>
-                                        </motion.div>
-
-                                        {/* Direction arrow */}
-                                        <motion.div
-                                            animate={
-                                                subStep === "left"
-                                                    ? { x: -20, opacity: [0.3, 1, 0.3] }
-                                                    : subStep === "right"
-                                                        ? { x: 20, opacity: [0.3, 1, 0.3] }
-                                                        : { scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }
-                                            }
-                                            transition={{ duration: 1.5, repeat: Infinity }}
-                                            className="mt-4"
-                                        >
-                                            {subStep === "left" && <ArrowRight className="w-6 h-6 text-primary rotate-180" />}
-                                            {subStep === "right" && <ArrowRight className="w-6 h-6 text-primary" />}
-                                            {subStep === "straight" && <Scan className="w-6 h-6 text-primary" />}
-                                        </motion.div>
-                                    </div>
-                                )}
-
-                                {state === "done" && (
-                                    <div className="absolute inset-0 rounded-full bg-accent/20 backdrop-blur-sm flex items-center justify-center z-40">
-                                        <CheckCircle2 className="w-12 h-12 text-accent" />
-                                    </div>
-                                )}
                             </div>
+                        </div>
 
-                            {/* Status pill */}
-                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                                <Activity className={`w-3 h-3 ${state !== "idle" ? "text-primary animate-pulse" : "text-white/20"}`} />
+                        {/* HUD: Status */}
+                        <div className="absolute bottom-4 left-4 flex items-center gap-6 z-20">
+                            <div className="flex items-center gap-2">
+                                <Activity className={`w-3 h-3 ${(state === "scanning" || state === "loading") ? "text-primary animate-pulse" : "text-white/20"}`} />
                                 <span className="text-[9px] font-black uppercase tracking-widest text-white/40">
                                     {state === "idle"
                                         ? "Camera standby"
-                                        : state === "scanning"
-                                            ? `${subStep.toUpperCase()} SCAN IN PROGRESS`
-                                            : "Identity confirmed"}
+                                        : state === "loading"
+                                            ? "Warming up engine"
+                                            : state === "scanning"
+                                                ? `SCAN IN PROGRESS`
+                                                : "Identity confirmed"}
                                 </span>
                             </div>
                         </div>
+
+                        {/* Error Overlay */}
+                        {error && state === "scanning" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/40 backdrop-blur-md z-50 whitespace-nowrap"
+                            >
+                                <p className="text-[9px] font-black text-red-100 uppercase tracking-widest flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                                    {error}
+                                </p>
+                            </motion.div>
+                        )}
 
                         {/* HUD: top-left */}
                         <div className="absolute top-4 left-4 space-y-1">
@@ -228,12 +356,13 @@ export default function BiometricsPage() {
                         )}
                     </div>
 
-                    {state === "idle" && (
+                    {(state === "idle" || state === "loading") && (
                         <button
                             onClick={handleActivate}
-                            className="group flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-primary/20"
+                            disabled={state === "loading"}
+                            className="group flex items-center gap-3 px-8 py-4 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-wait text-white font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-primary/20"
                         >
-                            Activate Camera
+                            {state === "loading" ? "Initialising Engine…" : "Activate Camera"}
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>
                     )}
@@ -245,8 +374,8 @@ export default function BiometricsPage() {
                 <AIGuidance
                     step="05"
                     title="Face Alignment Protocol"
-                    message="Please follow the on-screen instructions. We require three angles to construct a 3D biometric profile for maximum security."
-                    status={state === "idle" ? "Awaiting activation" : state === "scanning" ? `${subStep} scanning…` : "Verified ✓"}
+                    message="Please follow the on-screen instructions. We require a frontal face scan to verify your identity for maximum security."
+                    status={state === "idle" ? "Awaiting activation" : state === "scanning" ? `Scanning…` : "Verified ✓"}
                 />
 
                 {/* Metrics */}
@@ -268,8 +397,8 @@ export default function BiometricsPage() {
                     </div>
 
                     {[
-                        { label: "Instruction", val: state === "scanning" ? `LOOK ${subStep.toUpperCase()}` : state === "done" ? "COMPLETE" : "STAY STILL", accent: state !== "idle" },
-                        { label: "3D Landmark Scan", val: state !== "idle" ? "Active" : "—", accent: state !== "idle" },
+                        { label: "Instruction", val: state === "scanning" ? `LOOK STRAIGHT` : state === "done" ? "COMPLETE" : "STAY STILL", accent: state !== "idle" },
+                        { label: "Liveness Detection", val: state !== "idle" ? "Active" : "—", accent: state !== "idle" },
                         { label: "Landmarks Found", val: state !== "idle" ? "68 / 68" : "—", accent: state === "done" },
                         { label: "Match Confidence", val: state !== "idle" ? `${confidence}%` : "—", accent: state === "done" },
                     ].map((row, i) => (

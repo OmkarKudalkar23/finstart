@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ExplainableAMLDecisions, AMLDecision } from "@/components/admin/ExplainableAMLDecisions";
 import { getMistralOCRService } from "@/lib/mistralOCR";
-import { 
+import {
     Users,
     UserPlus,
     AlertTriangle,
@@ -115,55 +115,55 @@ export default function AdminDashboard() {
                     Configure
                 </Button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                    { 
-                        name: "AI Onboarding Copilot", 
-                        status: "active", 
-                        users: "2,847", 
+                    {
+                        name: "AI Onboarding Copilot",
+                        status: "active",
+                        users: "2,847",
                         accuracy: "96%",
                         description: "Real-time AI assistant guiding users through onboarding"
                     },
-                    { 
-                        name: "Smart Document Quality Scoring", 
-                        status: "active", 
-                        users: "2,847", 
+                    {
+                        name: "Smart Document Quality Scoring",
+                        status: "active",
+                        users: "2,847",
                         accuracy: "94%",
                         description: "AI-powered document quality assessment before upload"
                     },
-                    { 
-                        name: "Mistral OCR Integration", 
-                        status: "active", 
-                        users: "1,423", 
+                    {
+                        name: "Mistral OCR Integration",
+                        status: "active",
+                        users: "1,423",
                         accuracy: "97.3%",
                         description: "Advanced text extraction and document analysis using Mistral AI"
                     },
-                    { 
-                        name: "Risk-Adaptive Flow", 
-                        status: "active", 
-                        users: "2,847", 
+                    {
+                        name: "Risk-Adaptive Flow",
+                        status: "active",
+                        users: "2,847",
                         accuracy: "92%",
                         description: "Dynamic onboarding steps based on real-time risk scoring"
                     },
-                    { 
-                        name: "Drop-off Recovery", 
-                        status: "active", 
-                        users: "156", 
+                    {
+                        name: "Drop-off Recovery",
+                        status: "active",
+                        users: "156",
                         accuracy: "89%",
                         description: "Automated recovery campaigns for abandoned sessions"
                     },
-                    { 
-                        name: "Fraud Learning Loop", 
-                        status: "training", 
-                        users: "2,847", 
+                    {
+                        name: "Fraud Learning Loop",
+                        status: "training",
+                        users: "2,847",
                         accuracy: "94.2%",
                         description: "Self-improving AI models from reviewer feedback"
                     },
-                    { 
-                        name: "Staff Assist Mode", 
-                        status: "active", 
-                        users: "3", 
+                    {
+                        name: "Staff Assist Mode",
+                        status: "active",
+                        users: "3",
                         accuracy: "98%",
                         description: "AI confidence-based human escalation system"
                     }
@@ -171,10 +171,9 @@ export default function AdminDashboard() {
                     <div key={index} className="bg-black/40 border border-white/10 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${
-                                    feature.status === "active" ? "bg-green-400" : 
+                                <div className={`w-2 h-2 rounded-full ${feature.status === "active" ? "bg-green-400" :
                                     feature.status === "training" ? "bg-amber-400" : "bg-red-400"
-                                }`} />
+                                    }`} />
                                 <span className="text-sm font-medium text-white">{feature.name}</span>
                             </div>
                             <Badge variant="outline" className="text-xs">
@@ -279,8 +278,8 @@ export default function AdminDashboard() {
                                         <div key={i} className="flex gap-4 group cursor-pointer">
                                             <div className="flex flex-col items-center">
                                                 <div className={`w-2 h-2 rounded-full mt-1.5 ${log.type === 'success' ? 'bg-accent shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
-                                                        log.type === 'alert' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
-                                                            log.type === 'manual' ? 'bg-amber-500' : 'bg-primary'
+                                                    log.type === 'alert' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
+                                                        log.type === 'manual' ? 'bg-amber-500' : 'bg-primary'
                                                     }`} />
                                                 <div className="w-px flex-1 bg-border my-1" />
                                             </div>
@@ -338,7 +337,7 @@ export default function AdminDashboard() {
                                                         <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full rounded-full ${app.score > 800 ? 'bg-accent' :
-                                                                        app.score > 500 ? 'bg-amber-500' : 'bg-red-500'
+                                                                    app.score > 500 ? 'bg-amber-500' : 'bg-red-500'
                                                                     }`}
                                                                 style={{ width: `${app.score / 10}%` }}
                                                             />
@@ -385,7 +384,7 @@ export default function AdminDashboard() {
                             Staff Assist Mode
                         </h3>
                         <p className="text-muted-foreground mb-6">AI confidence-based human escalation and staff performance analytics</p>
-                        
+
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <h4 className="text-lg font-semibold">Active Escalations</h4>
@@ -408,7 +407,7 @@ export default function AdminDashboard() {
                                     </div>
                                 ))}
                             </div>
-                            
+
                             <div className="space-y-4">
                                 <h4 className="text-lg font-semibold">Staff Performance</h4>
                                 {[
@@ -472,11 +471,10 @@ export default function AdminDashboard() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
-                                    activeTab === tab.id
-                                        ? "border-primary text-primary"
-                                        : "border-transparent text-muted-foreground hover:text-foreground"
-                                }`}
+                                className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${activeTab === tab.id
+                                    ? "border-primary text-primary"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                                    }`}
                             >
                                 <tab.icon className="w-4 h-4" />
                                 <span className="text-sm font-medium">{tab.label}</span>

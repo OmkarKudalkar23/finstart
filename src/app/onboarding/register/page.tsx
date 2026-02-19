@@ -1,18 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, CheckCircle2, ShieldCheck } from "lucide-react";
+import { useVoiceAgent } from "@/components/voice/VoiceAgentProvider";
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { registerStep } = useVoiceAgent();
+
     const [form, setForm] = useState({
         fullName: "", email: "", phone: "", idNumber: "", password: "", confirmPassword: ""
     });
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+
+    // Register voice step
+    useEffect(() => {
+        registerStep(
+            "register",
+            {
+                fields: ["fullName", "email", "phone", "idNumber", "password"],
+                currentValues: form,
+                description: "User registration form. Ask for name, email, phone, and ID."
+            },
+            {
+                onFill: (data) => {
+                    setForm(prev => ({ ...prev, ...data }));
+                    // Mark filled fields as touched
+                    const newTouched: Record<string, boolean> = {};
+                    Object.keys(data).forEach(k => newTouched[k] = true);
+                    setTouched(prev => ({ ...prev, ...newTouched }));
+                },
+                onNext: () => handleSubmit() // Trigger submit
+            }
+        );
+    }, [form]); // Update context when form changes
 
     const errors: Record<string, string> = {};
     if (touched.fullName && !form.fullName.trim()) errors.fullName = "Full name is required";
@@ -47,8 +72,24 @@ export default function RegisterPage() {
     const handleChange = (field: string, val: string) => setForm(f => ({ ...f, [field]: val }));
     const handleBlur = (field: string) => setTouched(t => ({ ...t, [field]: true }));
 
-    const handleSubmit = () => {
-        if (isValid) router.push("/onboarding/assistant");
+    const handleSubmit = async () => {
+        // Validation check for voice-triggered submit
+        const isVoiceValid =
+            form.fullName.trim() &&
+            form.email.includes("@") &&
+            form.phone.replace(/\D/g, "").length >= 10 &&
+            form.idNumber.trim().length >= 6;
+
+        if (isValid || isVoiceValid) {
+            // Send email notification (fire and forget to not block UI)
+            fetch('/api/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: form.fullName, email: form.email }),
+            }).catch(err => console.error("Email error:", err));
+
+            router.push("/onboarding/assistant");
+        }
     };
 
     return (

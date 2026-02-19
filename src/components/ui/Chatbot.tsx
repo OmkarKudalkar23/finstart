@@ -173,98 +173,146 @@ export function Chatbot() {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 20, scale: 0.9, transformOrigin: 'bottom right' }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-24 right-6 w-96 max-h-[600px] h-[600px] z-50 flex flex-col bg-[#0a0a0b]/80 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl"
+                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="fixed bottom-24 right-6 w-[380px] max-h-[75vh] h-[600px] z-50 flex flex-col rounded-3xl overflow-hidden shadow-[0_0_50px_-12px_rgba(251,191,36,0.3)]"
                     >
-                        {/* Decorative background elements */}
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                            <motion.div
-                                className="absolute -top-10 -right-10 w-40 h-40 bg-blue-600/10 blur-[80px] rounded-full"
-                                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-                                transition={{ duration: 8, repeat: Infinity }}
-                            />
-                            <motion.div
-                                className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-600/10 blur-[80px] rounded-full"
-                                animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
-                                transition={{ duration: 10, repeat: Infinity }}
-                            />
-                            <div className="absolute top-20 left-10 opacity-10">
-                                <Coins className="w-20 h-20 text-white" />
-                            </div>
-                        </div>
-                        {/* Header */}
-                        <div className="p-4 border-b border-white/10 bg-white/5 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#FBBF24] p-1 flex items-center justify-center">
-                                <ChatbotIcon />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-semibold text-white">Finstart AI</h3>
-                                <p className="text-xs text-[#FBBF24] flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#FBBF24] animate-pulse" />
-                                    Online
-                                </p>
-                            </div>
+                        {/* Premium Border Gradient Wrapper */}
+                        <div className="absolute inset-0 p-[1px] bg-gradient-to-b from-[#FBBF24]/40 via-[#FBBF24]/10 to-transparent rounded-3xl">
+                            <div className="absolute inset-0 bg-[#0a0a0b] rounded-3xl" />
                         </div>
 
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                            {messages.map((m) => (
-                                <div
-                                    key={m.id}
-                                    className={cn(
-                                        "flex flex-col max-w-[80%]",
-                                        m.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
-                                    )}
-                                >
-                                    <div
-                                        className={cn(
-                                            "px-4 py-2 rounded-2xl text-sm leading-relaxed",
-                                            m.role === "user"
-                                                ? "bg-[#FBBF24] text-[#2D2D2D] font-medium rounded-tr-none"
-                                                : "bg-white/10 text-white border border-white/10 rounded-tl-none"
-                                        )}
-                                    >
-                                        {m.content}
-                                    </div>
-                                    <span className="text-[10px] text-white/40 mt-1">
-                                        {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                            ))}
-                            {isLoading && (
-                                <div className="mr-auto flex items-start gap-2">
-                                    <div className="bg-white/10 border border-white/10 px-4 py-2 rounded-2xl rounded-tl-none">
-                                        <Loader2 className="w-4 h-4 text-white/60 animate-spin" />
-                                    </div>
-                                </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
+                        <div className="relative flex-1 flex flex-col bg-[#0a0a0b]/40 backdrop-blur-3xl">
+                            {/* Tech Grid Background */}
+                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                                style={{ backgroundImage: `radial-gradient(#FBBF24 1px, transparent 1px)`, backgroundSize: '20px 20px' }}
+                            />
 
-                        {/* Input */}
-                        <div className="p-4 border-t border-white/10 bg-white/5">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                                    placeholder="Ask a question..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 pr-12 text-sm text-white focus:outline-none focus:border-[#FBBF24]/50 transition-colors placeholder:text-white/20"
+                            {/* Floating Decorative Blobs */}
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                <motion.div
+                                    className="absolute -top-20 -right-20 w-60 h-60 bg-[#FBBF24]/20 blur-[100px] rounded-full"
+                                    animate={{
+                                        scale: [1, 1.3, 1],
+                                        opacity: [0.1, 0.2, 0.1],
+                                        x: [0, 20, 0]
+                                    }}
+                                    transition={{ duration: 10, repeat: Infinity }}
                                 />
+                                <motion.div
+                                    className="absolute -bottom-20 -left-20 w-60 h-60 bg-indigo-600/10 blur-[100px] rounded-full"
+                                    animate={{
+                                        scale: [1.3, 1, 1.3],
+                                        opacity: [0.05, 0.1, 0.05]
+                                    }}
+                                    transition={{ duration: 15, repeat: Infinity }}
+                                />
+                            </div>
+
+                            {/* Header */}
+                            <div className="relative p-5 border-b border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] p-1.5 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
+                                            <ChatbotIcon />
+                                        </div>
+                                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0a0a0b] animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-white tracking-tight">FINSTART INTELLIGENCE</h3>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[10px] uppercase font-semibold text-[#FBBF24] tracking-widest opacity-80">System Online</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <button
-                                    onClick={handleSend}
-                                    disabled={!inputValue.trim() || isLoading}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-[#FBBF24]/20 hover:bg-[#FBBF24]/40 text-[#FBBF24] transition-colors disabled:opacity-50"
+                                    onClick={() => setIsOpen(false)}
+                                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-transparent hover:border-white/10"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
-                            <p className="text-[10px] text-white/20 mt-2 text-center">
-                                Powered by Gemini AI • Finstart Intelligence
-                            </p>
+
+                            {/* Messages */}
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                                {messages.map((m) => (
+                                    <div
+                                        key={m.id}
+                                        className={cn(
+                                            "flex flex-col max-w-[80%]",
+                                            m.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
+                                        )}
+                                    >
+                                        <div
+                                            className={cn(
+                                                "px-4 py-2 rounded-2xl text-sm leading-relaxed",
+                                                m.role === "user"
+                                                    ? "bg-[#FBBF24] text-[#2D2D2D] font-medium rounded-tr-none"
+                                                    : "bg-white/10 text-white border border-white/10 rounded-tl-none"
+                                            )}
+                                        >
+                                            {m.content}
+                                        </div>
+                                        <span className="text-[10px] text-white/40 mt-1">
+                                            {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+                                ))}
+                                {isLoading && (
+                                    <div className="mr-auto flex items-start gap-2">
+                                        <div className="bg-white/10 border border-white/10 px-4 py-2 rounded-2xl rounded-tl-none">
+                                            <Loader2 className="w-4 h-4 text-white/60 animate-spin" />
+                                        </div>
+                                    </div>
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
+                                {[
+                                    { label: "Check Status", icon: <Bot className="w-3 h-3" /> },
+                                    { label: "Security Info", icon: <Zap className="w-3 h-3" /> },
+                                    { label: "Support", icon: <User className="w-3 h-3" /> },
+                                ].map((action) => (
+                                    <button
+                                        key={action.label}
+                                        onClick={() => {
+                                            setInputValue(action.label);
+                                            // Optional: auto-send
+                                        }}
+                                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-medium text-white/70 hover:bg-[#FBBF24]/10 hover:text-[#FBBF24] hover:border-[#FBBF24]/30 transition-all whitespace-nowrap"
+                                    >
+                                        {action.icon}
+                                        {action.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Input */}
+                            <div className="p-4 border-t border-white/10 bg-white/5">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                                        placeholder="Ask a question..."
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 pr-12 text-sm text-white focus:outline-none focus:border-[#FBBF24]/50 transition-colors placeholder:text-white/20"
+                                    />
+                                    <button
+                                        onClick={handleSend}
+                                        disabled={!inputValue.trim() || isLoading}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-[#FBBF24]/20 hover:bg-[#FBBF24]/40 text-[#FBBF24] transition-colors disabled:opacity-50"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-white/20 mt-2 text-center">
+                                    Powered by Gemini AI • Finstart Intelligence
+                                </p>
+                            </div>
                         </div>
                     </motion.div>
                 )}
@@ -284,6 +332,13 @@ export function Chatbot() {
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(255, 255, 255, 0.2);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}} />
         </>

@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Home, Building, Globe, CheckCircle2, Navigation } from "lucide-react";
 import { AIGuidance } from "@/components/onboarding/AIGuidance";
+import { useVoiceAgent } from "@/components/voice/VoiceAgentProvider";
 
 export default function AddressPage() {
     const router = useRouter();
+    const { registerStep } = useVoiceAgent();
+
     const [form, setForm] = useState({
         line1: "", line2: "", city: "", state: "", pincode: "", country: "India"
     });
@@ -16,6 +19,9 @@ export default function AddressPage() {
     const [verified, setVerified] = useState(false);
 
     const isValid = form.line1.trim() && form.city.trim() && form.state.trim() && form.pincode.trim().length >= 6;
+
+    const fullAddress = `${form.line1}, ${form.city}, ${form.state} ${form.pincode}, ${form.country}`;
+    const hasMinimumAddress = form.line1.trim().length > 3 && form.city.trim().length > 2 && form.pincode.trim().length >= 6;
 
     const handleBlur = (field: string) => setTouched(t => ({ ...t, [field]: true }));
     const handleChange = (field: string, val: string) => setForm(f => ({ ...f, [field]: val }));
@@ -32,6 +38,30 @@ export default function AddressPage() {
     const handleNext = () => {
         if (verified) router.push("/onboarding/financial");
     };
+
+    // Register voice agent
+    useEffect(() => {
+        registerStep(
+            "address-verification",
+            {
+                fields: ["line1", "line2", "city", "state", "pincode", "country"],
+                currentValues: form,
+                status: verified ? "VERIFIED" : "PENDING",
+                description: "Address verification step. Ask for full residential address."
+            },
+            {
+                onFill: (data) => setForm(prev => ({ ...prev, ...data })),
+                onNext: () => {
+                    if (!verified) handleVerify();
+                    else handleNext();
+                },
+                onConfirm: () => {
+                    if (!verified) handleVerify();
+                    else handleNext();
+                }
+            }
+        );
+    }, [form, verified]);
 
     return (
         <div className="flex-1 flex flex-col lg:flex-row min-h-0">
@@ -176,29 +206,53 @@ export default function AddressPage() {
                         <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Address Record</span>
                     </div>
 
-                    {/* Map placeholder */}
-                    <div className="aspect-video rounded-xl bg-white/[0.03] border border-white/[0.06] relative overflow-hidden flex items-center justify-center">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08)_0%,transparent_70%)]" />
-                        {/* Grid lines */}
-                        <div className="absolute inset-0 opacity-20"
-                            style={{
-                                backgroundImage: "linear-gradient(rgba(139,92,246,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.3) 1px, transparent 1px)",
-                                backgroundSize: "20px 20px"
-                            }}
-                        />
-                        {verified ? (
+                    {/* Map Visualizer */}
+                    <div className="aspect-video rounded-xl bg-white/[0.03] border border-white/[0.06] relative overflow-hidden">
+                        {hasMinimumAddress ? (
                             <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="flex flex-col items-center gap-2"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="absolute inset-0 w-full h-full"
                             >
-                                <div className="w-10 h-10 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
-                                    <MapPin className="w-5 h-5 text-accent" />
-                                </div>
-                                <p className="text-[9px] font-black text-accent uppercase tracking-widest">Location Pinned</p>
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    frameBorder="0"
+                                    style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) brightness(0.9) contrast(1.2)' }}
+                                    src={`https://www.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed&z=15`}
+                                    allowFullScreen
+                                />
+                                <div className="absolute inset-0 pointer-events-none border-2 border-white/5 rounded-xl" />
                             </motion.div>
                         ) : (
-                            <MapPin className="w-8 h-8 text-white/10" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08)_0%,transparent_70%)]" />
+                                {/* Grid lines */}
+                                <div className="absolute inset-0 opacity-20"
+                                    style={{
+                                        backgroundImage: "linear-gradient(rgba(139,92,246,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.3) 1px, transparent 1px)",
+                                        backgroundSize: "20px 20px"
+                                    }}
+                                />
+                                <div className="flex flex-col items-center gap-2">
+                                    <MapPin className="w-8 h-8 text-white/10" />
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Awaiting Address Details</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Status Overlay */}
+                        {verified && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute bottom-3 left-3 right-3 p-2 bg-black/80 backdrop-blur-md border border-accent/30 rounded-lg flex items-center gap-3"
+                            >
+                                <div className="w-6 h-6 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
+                                    <CheckCircle2 className="w-3 h-3 text-accent" />
+                                </div>
+                                <span className="text-[9px] font-black text-accent uppercase tracking-widest">Location Verified by AI</span>
+                            </motion.div>
                         )}
                     </div>
 
